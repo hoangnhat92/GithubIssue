@@ -26,6 +26,7 @@ class ListIssueCoordinator: Coordinator {
     // MARK: - Functions
     
     func start() {
-        
+        let listIssue = ListIssueViewController()
+        navigationController.setViewControllers([listIssue], animated: true)        
     }    
 }
