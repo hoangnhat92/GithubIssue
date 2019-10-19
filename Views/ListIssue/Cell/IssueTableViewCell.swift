@@ -105,8 +105,7 @@ final class IssueTableViewCell: UITableViewCell, Reusable {
         
         leftView.snp.makeConstraints { (make) in
             make.left.top.bottom.equalTo(self).inset(5)
-            make.width.equalTo(80)
-            make.height.equalTo(80)
+            make.width.height.equalTo(80)
         }
         
         idLabel.snp.makeConstraints { (make) in
