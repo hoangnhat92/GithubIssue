@@ -8,6 +8,7 @@
 
 import UIKit
 import SnapKit
+import Toaster
 
 protocol AuthenticationDelegate: class {
     func didFinishAuthentication()
@@ -16,6 +17,8 @@ protocol AuthenticationDelegate: class {
 final class AuthenticationViewController: UIViewController {
 
     // MARK: - Properties
+    
+    let viewModel: AuthenticationViewModel
     
     weak var delegate: AuthenticationDelegate?
     
@@ -79,6 +82,17 @@ final class AuthenticationViewController: UIViewController {
         return btn
     }()
     
+    
+    // MARK: - Initialize
+    init(viewModel: AuthenticationViewModel = AuthenticationViewModel()) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     // MARK: - Life cycle
     
     override func viewDidLoad() {
@@ -86,6 +100,11 @@ final class AuthenticationViewController: UIViewController {
         
         setupView()
         setupLayout()
+        setupViewModel()
+        
+        #if DEBUG
+        setupMockData()
+        #endif
     }
     
     // MARK: - Set up
@@ -155,10 +174,34 @@ final class AuthenticationViewController: UIViewController {
         }
     }
     
+    fileprivate func setupMockData() {
+        repositoryNameTextfield.text = "GithubIssue"
+        ownerNameTextfield.text = "hoangnhat92"
+        tokenTextfield.text = "dc8e2aec4ce11cf52d97bd70f1c5af560e9ef6f5"
+    }
+    
+    fileprivate func setupViewModel() {
+        viewModel.delegate = self
+    }
+    
     // MARK: - IBActions
     
     @objc fileprivate func onClickSubmitButton() {
-        delegate?.didFinishAuthentication()
+        guard let owner = ownerNameTextfield.text, !owner.isEmpty else {
+            return
+        }
+        
+        guard let repository = repositoryNameTextfield.text, !repository.isEmpty else {
+            return
+        }
+        
+        guard let token = tokenTextfield.text, !token.isEmpty else {
+            return
+        }
+        
+        view.endEditing(true)        
+        showLoading()
+        viewModel.loginWith(owner: owner, repositiory: repository, token: token)
     }
     
 }
@@ -168,11 +211,24 @@ final class AuthenticationViewController: UIViewController {
 extension AuthenticationViewController {
     fileprivate func makeTextfield() -> UITextField {
         let txt = UITextField()
+        txt.setPadding()
         txt.textColor = .white
         txt.layer.cornerRadius = 5
         txt.layer.masksToBounds = true
         txt.layer.borderColor = UIColor.white.cgColor
         txt.layer.borderWidth = 1.0
         return txt
+    }
+}
+
+extension AuthenticationViewController: AuthenticationViewModelDelegate {
+    func didLoginSuccessfully() {
+        hideLoading()
+        delegate?.didFinishAuthentication()
+    }
+    
+    func didLoginFailed(_ error: Error) {
+        hideLoading()
+        Toast(text: error.localizedDescription).show()
     }
 }

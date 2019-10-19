@@ -12,5 +12,7 @@ target 'GithubIssue' do
   pod 'KeychainSwift'
   pod 'MBProgressHUD'
   pod "Apollo"
+  pod 'KeychainSwift'
+  pod 'Toaster'
   
 end
