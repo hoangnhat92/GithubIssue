@@ -14,5 +14,6 @@ target 'GithubIssue' do
   pod "Apollo"
   pod 'KeychainSwift'
   pod 'Toaster'
+  pod 'SwiftDate'
   
 end

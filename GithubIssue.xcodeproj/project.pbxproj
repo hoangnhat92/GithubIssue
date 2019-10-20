@@ -16,6 +16,7 @@
 		6406C410235B76B400108F4E /* UIViewController+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6406C40F235B76B400108F4E /* UIViewController+Extensions.swift */; };
 		6415A2E6235A9D8C000588B4 /* HeaderDetailIssueView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6415A2E5235A9D8C000588B4 /* HeaderDetailIssueView.swift */; };
 		6415A2E8235AA75C000588B4 /* CommentCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6415A2E7235AA75C000588B4 /* CommentCollectionViewCell.swift */; };
+		6428C712235C546800653F83 /* String+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6428C711235C546800653F83 /* String+Extensions.swift */; };
 		642B80BA235B7A57003A01A9 /* UITextfield+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 642B80B9235B7A57003A01A9 /* UITextfield+Extensions.swift */; };
 		642B80BC235B7B3A003A01A9 /* Repository.graphql in Resources */ = {isa = PBXBuildFile; fileRef = 642B80BB235B7B3A003A01A9 /* Repository.graphql */; };
 		642B80BE235B7D25003A01A9 /* AuthenticationNetwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = 642B80BD235B7D25003A01A9 /* AuthenticationNetwork.swift */; };
@@ -49,6 +50,7 @@
 		6406C40F235B76B400108F4E /* UIViewController+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIViewController+Extensions.swift"; sourceTree = "<group>"; };
 		6415A2E5235A9D8C000588B4 /* HeaderDetailIssueView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeaderDetailIssueView.swift; sourceTree = "<group>"; };
 		6415A2E7235AA75C000588B4 /* CommentCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentCollectionViewCell.swift; sourceTree = "<group>"; };
+		6428C711235C546800653F83 /* String+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Extensions.swift"; sourceTree = "<group>"; };
 		642B80B9235B7A57003A01A9 /* UITextfield+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UITextfield+Extensions.swift"; sourceTree = "<group>"; };
 		642B80BB235B7B3A003A01A9 /* Repository.graphql */ = {isa = PBXFileReference; lastKnownFileType = text; path = Repository.graphql; sourceTree = "<group>"; };
 		642B80BD235B7D25003A01A9 /* AuthenticationNetwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationNetwork.swift; sourceTree = "<group>"; };
@@ -256,6 +258,7 @@
 				645962652359B20B005C2BD9 /* UITableView+Extensions.swift */,
 				6406C40F235B76B400108F4E /* UIViewController+Extensions.swift */,
 				642B80B9235B7A57003A01A9 /* UITextfield+Extensions.swift */,
+				6428C711235C546800653F83 /* String+Extensions.swift */,
 			);
 			path = Extensions;
 			sourceTree = SOURCE_ROOT;
@@ -383,6 +386,7 @@
 				"${BUILT_PRODUCTS_DIR}/Reusable/Reusable.framework",
 				"${BUILT_PRODUCTS_DIR}/SDWebImage/SDWebImage.framework",
 				"${BUILT_PRODUCTS_DIR}/SnapKit/SnapKit.framework",
+				"${BUILT_PRODUCTS_DIR}/SwiftDate/SwiftDate.framework",
 				"${BUILT_PRODUCTS_DIR}/Toaster/Toaster.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
@@ -395,6 +399,7 @@
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Reusable.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SDWebImage.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SnapKit.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SwiftDate.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Toaster.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -467,6 +472,7 @@
 				645962542358554F005C2BD9 /* AppCoordinator.swift in Sources */,
 				645962662359B20B005C2BD9 /* UITableView+Extensions.swift in Sources */,
 				6406C408235B59DD00108F4E /* AuthenticationResult.swift in Sources */,
+				6428C712235C546800653F83 /* String+Extensions.swift in Sources */,
 				642B80C0235B80C8003A01A9 /* RepositoryNetwork.swift in Sources */,
 				64E1FF2A2358194A00A67E8C /* Coordinator.swift in Sources */,
 				6459625C23586AD0005C2BD9 /* AuthenticationViewController.swift in Sources */,

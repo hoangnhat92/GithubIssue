@@ -8,6 +8,7 @@
 
 import UIKit
 import Reusable
+import Toaster
 
 final class ListIssueViewController: UIViewController {
     
@@ -25,6 +26,12 @@ final class ListIssueViewController: UIViewController {
         tblView.delegate = self
         tblView.dataSource = self
         return tblView
+    }()
+    
+    lazy var refreshControl: UIRefreshControl = {
+        let refresh = UIRefreshControl()
+        refresh.addTarget(self, action: #selector(onPullToRefresh), for: .valueChanged)
+        return refresh
     }()
     
     // MARK: - Initialize
@@ -48,7 +55,6 @@ final class ListIssueViewController: UIViewController {
         setupLayout()
         setupViewModel()
         registerCells()
-        setupHeaderTableView()
         loadData()
     }
     
@@ -67,6 +73,8 @@ final class ListIssueViewController: UIViewController {
         
         view.addSubview(tableView)
         tableView.removeBottomSeperatorLine()
+        setupHeaderTableView()
+        setupRefreshControl()
     }
     
     fileprivate func setupLayout() {
@@ -105,7 +113,19 @@ final class ListIssueViewController: UIViewController {
         viewModel.getListIssue()
     }
     
+    fileprivate func setupRefreshControl() {
+        if #available(iOS 10.0, *) {
+            tableView.refreshControl = refreshControl
+        } else {
+            tableView.addSubview(refreshControl)
+        }
+    }
+    
     // MARK: - IBActions
+    @objc fileprivate func onPullToRefresh() {
+        refreshControl.beginRefreshing()
+        viewModel.getListIssue()
+    }
 }
 
 
@@ -118,6 +138,10 @@ extension ListIssueViewController: UITableViewDataSource, UITableViewDelegate {
         
         if let issue = viewModel.itemForIndexPath(indexPath) {
             cell.bind(issue)
+        }
+        
+        if viewModel.shouldLoadMoreData(indexPath) {
+            viewModel.loadMoreListIssue()
         }
         
         return cell
@@ -138,10 +162,13 @@ extension ListIssueViewController: ListIssueViewModelDelegate {
         hideLoading()
         
         switch action {
-        case .didFetch, .didLoadMore:
-            self.tableView.reloadData()
-        default:
-            debugPrint("abc")
+        case .didFetch :
+            refreshControl.endRefreshing()
+            tableView.reloadData()
+        case .didLoadMore:
+            tableView.reloadData()
+        case .didFail(let error):
+            Toast(text: error.localizedDescription).show()
         }
     }
 }

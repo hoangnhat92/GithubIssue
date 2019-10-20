@@ -25,9 +25,12 @@ class ListIssueViewModel {
     
     var issue: Issue?
     
+    var listIssue: [IssueDetail] = []
+    
     // MARK: - Initializers
     
-    init(repository: Repository, network: RepositoryNetwork = RepositoryNetwork()) {
+    init(repository: Repository,
+         network: RepositoryNetwork = RepositoryNetwork()) {
         self.repository = repository
         self.network = network
     }
@@ -49,11 +52,14 @@ class ListIssueViewModel {
                                 switch result {
                                 case .success(let issue):
                                     self.issue = issue
-                                    guard let _ = issue.edges else {
+                                    guard let edges = issue.edges else {
                                         self.delegate?.performAction(.didFail(CustomError.emptyData))
                                         return
                                     }
-                                                                        
+                                    
+                                    let issues = edges.compactMap({ $0?.node?.fragments.issueDetail })
+                                    self.listIssue = issues
+                                    
                                     self.delegate?.performAction(.didFetch)
                                 case .failure(let error):
                                     self.delegate?.performAction(.didFail(error))
@@ -73,32 +79,43 @@ class ListIssueViewModel {
                                 switch result {
                                 case .success(let issue):
                                     self.issue = issue
+                                    guard let edges = issue.edges else {
+                                        return
+                                    }
+                                    
+                                    let issues = edges.compactMap({ $0?.node?.fragments.issueDetail })
+                                    self.listIssue += issues
+                                    
                                     self.delegate?.performAction(.didLoadMore)
+                                    
                                 case .failure(let error):
                                     self.delegate?.performAction(.didFail(error))
                                 }
         }
     }
     
-    func shouldLoadMoreData() -> Bool {
-        guard let issue = issue else {
-            return false
+    func shouldLoadMoreData(_ indexPath: IndexPath) -> Bool {
+        guard
+            let issue = issue,
+            let edges = issue.edges else {
+                return false
         }
         
-        return issue.pageInfo.hasNextPage
+        if indexPath.row == edges.count - 1 {
+            return issue.pageInfo.hasNextPage
+        }
+        
+        return false
     }
     
     func numberOfItemInSections(_ section: Int) -> Int {
-        guard let issue = issue, let edges = issue.edges else { return 0 }
-        
-        return edges.count
+        return listIssue.count
     }
     
     func itemForIndexPath(_ indexPath: IndexPath) -> IssueDetail? {
-        guard let issue = issue, let edges = issue.edges else { return nil }
+        guard indexPath.row < listIssue.count else { return nil }
                 
-        let issues = edges.compactMap({ $0?.node?.fragments.issueDetail })
-        return issues[indexPath.row]
+        return listIssue[indexPath.row]
     }
 }
 
@@ -110,7 +127,6 @@ extension ListIssueViewModel {
     enum Action {
         case didFetch
         case didLoadMore
-        case didFail(Error)
-        case showLoading(Bool)
+        case didFail(Error)        
     }
 }

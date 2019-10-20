@@ -9,6 +9,7 @@
 import UIKit
 import Reusable
 
+
 final class IssueTableViewCell: UITableViewCell, Reusable {
 
     // MARK: - Properties
@@ -124,8 +125,8 @@ final class IssueTableViewCell: UITableViewCell, Reusable {
     
     func bind(_ model: IssueDetail) {
         idLabel.text = "\(model.number)"
-        titleLabel.text = model.title
-        createdAtLabel.text = model.createdAt
+        titleLabel.text = model.title                
+        createdAtLabel.text = model.createdAt.timeAgo()
         statusLabel.text = model.state.rawValue
     }
 }
