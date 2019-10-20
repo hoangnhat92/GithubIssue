@@ -9,7 +9,7 @@
 import Foundation
 import Apollo
 
-class ApolloNetwork {
+final class ApolloNetwork {
     
     static let shared = ApolloNetwork()
     
@@ -19,12 +19,12 @@ class ApolloNetwork {
         self.accessToken = accessToken
     }
     
-    private lazy var networkTransport = HTTPNetworkTransport(
+    lazy var networkTransport = HTTPNetworkTransport(
         url: Constants.baseURL,
         delegate: self
     )
     
-    private lazy var client = ApolloClient(networkTransport: self.networkTransport)
+    lazy var client = ApolloClient(networkTransport: self.networkTransport)
 }
 
 extension ApolloNetwork: HTTPNetworkTransportPreflightDelegate {
@@ -48,27 +48,5 @@ extension ApolloNetwork: HTTPNetworkTransportPreflightDelegate {
         
         // Re-assign the updated headers to the request.
         request.allHTTPHeaderFields = headers
-    }
-}
-
-extension ApolloNetwork {
-        
-    func authenticationWith(ownerName: String,
-                            repository: String,
-                            completionHandler: @escaping (Error?) -> Void) {
-        let query = AuthenticateQuery(owner: ownerName, name: repository)
-        client.fetch(query: query,
-                     cachePolicy: CachePolicy.fetchIgnoringCacheData) { (result) in
-                        switch result {
-                        case .success(let data):
-                            if let errors = data.errors {
-                                completionHandler(errors.first)
-                            } else {
-                                completionHandler(nil)
-                            }
-                        case .failure(let error):
-                            completionHandler(error)
-                        }
-        }
     }
 }

@@ -54,6 +54,7 @@ public final class AuthenticateQuery: GraphQLQuery {
       repository(owner: $owner, name: $name) {
         __typename
         id
+        name
       }
     }
     """
@@ -105,6 +106,7 @@ public final class AuthenticateQuery: GraphQLQuery {
       public static let selections: [GraphQLSelection] = [
         GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
         GraphQLField("id", type: .nonNull(.scalar(GraphQLID.self))),
+        GraphQLField("name", type: .nonNull(.scalar(String.self))),
       ]
 
       public private(set) var resultMap: ResultMap
@@ -113,8 +115,8 @@ public final class AuthenticateQuery: GraphQLQuery {
         self.resultMap = unsafeResultMap
       }
 
-      public init(id: GraphQLID) {
-        self.init(unsafeResultMap: ["__typename": "Repository", "id": id])
+      public init(id: GraphQLID, name: String) {
+        self.init(unsafeResultMap: ["__typename": "Repository", "id": id, "name": name])
       }
 
       public var __typename: String {
@@ -134,6 +136,16 @@ public final class AuthenticateQuery: GraphQLQuery {
           resultMap.updateValue(newValue, forKey: "id")
         }
       }
+
+      /// The name of the repository.
+      public var name: String {
+        get {
+          return resultMap["name"]! as! String
+        }
+        set {
+          resultMap.updateValue(newValue, forKey: "name")
+        }
+      }
     }
   }
 }
@@ -145,9 +157,6 @@ public final class GetRepositoryQuery: GraphQLQuery {
     query GetRepository($owner: String!, $name: String!, $limit: Int, $cursor: String) {
       repository(owner: $owner, name: $name) {
         __typename
-        id
-        name
-        description
         issues(first: $limit, after: $cursor) {
           __typename
           edges {
@@ -225,9 +234,6 @@ public final class GetRepositoryQuery: GraphQLQuery {
 
       public static let selections: [GraphQLSelection] = [
         GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
-        GraphQLField("id", type: .nonNull(.scalar(GraphQLID.self))),
-        GraphQLField("name", type: .nonNull(.scalar(String.self))),
-        GraphQLField("description", type: .scalar(String.self)),
         GraphQLField("issues", arguments: ["first": GraphQLVariable("limit"), "after": GraphQLVariable("cursor")], type: .nonNull(.object(Issue.selections))),
       ]
 
@@ -237,8 +243,8 @@ public final class GetRepositoryQuery: GraphQLQuery {
         self.resultMap = unsafeResultMap
       }
 
-      public init(id: GraphQLID, name: String, description: String? = nil, issues: Issue) {
-        self.init(unsafeResultMap: ["__typename": "Repository", "id": id, "name": name, "description": description, "issues": issues.resultMap])
+      public init(issues: Issue) {
+        self.init(unsafeResultMap: ["__typename": "Repository", "issues": issues.resultMap])
       }
 
       public var __typename: String {
@@ -247,35 +253,6 @@ public final class GetRepositoryQuery: GraphQLQuery {
         }
         set {
           resultMap.updateValue(newValue, forKey: "__typename")
-        }
-      }
-
-      public var id: GraphQLID {
-        get {
-          return resultMap["id"]! as! GraphQLID
-        }
-        set {
-          resultMap.updateValue(newValue, forKey: "id")
-        }
-      }
-
-      /// The name of the repository.
-      public var name: String {
-        get {
-          return resultMap["name"]! as! String
-        }
-        set {
-          resultMap.updateValue(newValue, forKey: "name")
-        }
-      }
-
-      /// The description of the repository.
-      public var description: String? {
-        get {
-          return resultMap["description"] as? String
-        }
-        set {
-          resultMap.updateValue(newValue, forKey: "description")
         }
       }
 

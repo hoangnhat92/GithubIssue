@@ -9,7 +9,7 @@
 import UIKit
 import Reusable
 
-class CommentCollectionViewCell: UICollectionViewCell, Reusable {
+final class CommentCollectionViewCell: UICollectionViewCell, Reusable {
     
     // MARK: - Properties
     lazy var avatarImageView: UIImageView = {

@@ -11,7 +11,7 @@ import SnapKit
 import Toaster
 
 protocol AuthenticationDelegate: class {
-    func didFinishAuthentication()
+    func didFinishAuthentication(_ repository: Repository)
 }
 
 final class AuthenticationViewController: UIViewController {
@@ -177,7 +177,7 @@ final class AuthenticationViewController: UIViewController {
     fileprivate func setupMockData() {
         repositoryNameTextfield.text = "GithubIssue"
         ownerNameTextfield.text = "hoangnhat92"
-        tokenTextfield.text = "dc8e2aec4ce11cf52d97bd70f1c5af560e9ef6f5"
+        tokenTextfield.text = "e23bb1b1b0b927631a6a3bd6b668992d52d64b47"
     }
     
     fileprivate func setupViewModel() {
@@ -203,7 +203,6 @@ final class AuthenticationViewController: UIViewController {
         showLoading()
         viewModel.loginWith(owner: owner, repositiory: repository, token: token)
     }
-    
 }
 
 // MARK: - Extensions
@@ -222,9 +221,9 @@ extension AuthenticationViewController {
 }
 
 extension AuthenticationViewController: AuthenticationViewModelDelegate {
-    func didLoginSuccessfully() {
+    func didLoginSuccessfully(with repository: Repository) {
         hideLoading()
-        delegate?.didFinishAuthentication()
+        delegate?.didFinishAuthentication(repository)
     }
     
     func didLoginFailed(_ error: Error) {

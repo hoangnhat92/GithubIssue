@@ -50,7 +50,7 @@ class AppCoordinator: Coordinator {
 // MARK: Extensions
 
 extension AppCoordinator: AuthenticationCoordinatorDelegate {
-    func didFinishAuthentication(_ coordinator: AuthenticationCoordinator) {
+    func didFinishAuthentication(_ coordinator: AuthenticationCoordinator, _ repository: Repository) {
         remove(coordinator: coordinator)
         goToListIssue()
     }

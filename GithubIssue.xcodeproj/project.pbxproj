@@ -18,6 +18,9 @@
 		6415A2E8235AA75C000588B4 /* CommentCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6415A2E7235AA75C000588B4 /* CommentCollectionViewCell.swift */; };
 		642B80BA235B7A57003A01A9 /* UITextfield+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 642B80B9235B7A57003A01A9 /* UITextfield+Extensions.swift */; };
 		642B80BC235B7B3A003A01A9 /* Repository.graphql in Resources */ = {isa = PBXBuildFile; fileRef = 642B80BB235B7B3A003A01A9 /* Repository.graphql */; };
+		642B80BE235B7D25003A01A9 /* AuthenticationNetwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = 642B80BD235B7D25003A01A9 /* AuthenticationNetwork.swift */; };
+		642B80C0235B80C8003A01A9 /* RepositoryNetwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = 642B80BF235B80C8003A01A9 /* RepositoryNetwork.swift */; };
+		642B80C2235BEE7B003A01A9 /* CustomError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 642B80C1235BEE7B003A01A9 /* CustomError.swift */; };
 		645962542358554F005C2BD9 /* AppCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 645962532358554F005C2BD9 /* AppCoordinator.swift */; };
 		645962562358558C005C2BD9 /* AuthenticationCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 645962552358558C005C2BD9 /* AuthenticationCoordinator.swift */; };
 		64596258235855C8005C2BD9 /* ListIssueCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64596257235855C8005C2BD9 /* ListIssueCoordinator.swift */; };
@@ -47,6 +50,9 @@
 		6415A2E7235AA75C000588B4 /* CommentCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentCollectionViewCell.swift; sourceTree = "<group>"; };
 		642B80B9235B7A57003A01A9 /* UITextfield+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UITextfield+Extensions.swift"; sourceTree = "<group>"; };
 		642B80BB235B7B3A003A01A9 /* Repository.graphql */ = {isa = PBXFileReference; lastKnownFileType = text; path = Repository.graphql; sourceTree = "<group>"; };
+		642B80BD235B7D25003A01A9 /* AuthenticationNetwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationNetwork.swift; sourceTree = "<group>"; };
+		642B80BF235B80C8003A01A9 /* RepositoryNetwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepositoryNetwork.swift; sourceTree = "<group>"; };
+		642B80C1235BEE7B003A01A9 /* CustomError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomError.swift; sourceTree = "<group>"; };
 		645962532358554F005C2BD9 /* AppCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCoordinator.swift; sourceTree = "<group>"; };
 		645962552358558C005C2BD9 /* AuthenticationCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationCoordinator.swift; sourceTree = "<group>"; };
 		64596257235855C8005C2BD9 /* ListIssueCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ListIssueCoordinator.swift; sourceTree = "<group>"; };
@@ -91,8 +97,8 @@
 		6430709D235B2B610018ECD6 /* Queries */ = {
 			isa = PBXGroup;
 			children = (
-				64F3F7E1235B342D004AD381 /* Authentication.graphql */,
 				642B80BB235B7B3A003A01A9 /* Repository.graphql */,
+				64F3F7E1235B342D004AD381 /* Authentication.graphql */,
 			);
 			path = Queries;
 			sourceTree = "<group>";
@@ -206,6 +212,8 @@
 		64E1FEF523576A4F00A67E8C /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				642B80BF235B80C8003A01A9 /* RepositoryNetwork.swift */,
+				642B80BD235B7D25003A01A9 /* AuthenticationNetwork.swift */,
 				6406C409235B5A5600108F4E /* ApolloNetwork.swift */,
 				64F3F7E7235B36F1004AD381 /* GitHubAPI.swift */,
 				6430709D235B2B610018ECD6 /* Queries */,
@@ -263,6 +271,7 @@
 			isa = PBXGroup;
 			children = (
 				6406C40B235B5AAF00108F4E /* Constants.swift */,
+				642B80C1235BEE7B003A01A9 /* CustomError.swift */,
 			);
 			path = Constants;
 			sourceTree = "<group>";
@@ -437,11 +446,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				642B80C2235BEE7B003A01A9 /* CustomError.swift in Sources */,
 				645962642359B199005C2BD9 /* DetailIssueViewController.swift in Sources */,
 				642B80BA235B7A57003A01A9 /* UITextfield+Extensions.swift in Sources */,
 				6406C40C235B5AAF00108F4E /* Constants.swift in Sources */,
 				645962562358558C005C2BD9 /* AuthenticationCoordinator.swift in Sources */,
 				6415A2E6235A9D8C000588B4 /* HeaderDetailIssueView.swift in Sources */,
+				642B80BE235B7D25003A01A9 /* AuthenticationNetwork.swift in Sources */,
 				6459625E2358C2AB005C2BD9 /* ListIssueViewController.swift in Sources */,
 				64F3F7E8235B36F1004AD381 /* GitHubAPI.swift in Sources */,
 				6406C410235B76B400108F4E /* UIViewController+Extensions.swift in Sources */,
@@ -452,6 +463,7 @@
 				645962542358554F005C2BD9 /* AppCoordinator.swift in Sources */,
 				645962662359B20B005C2BD9 /* UITableView+Extensions.swift in Sources */,
 				6406C408235B59DD00108F4E /* AuthenticationResult.swift in Sources */,
+				642B80C0235B80C8003A01A9 /* RepositoryNetwork.swift in Sources */,
 				64E1FF2A2358194A00A67E8C /* Coordinator.swift in Sources */,
 				6459625C23586AD0005C2BD9 /* AuthenticationViewController.swift in Sources */,
 				64E1FEC02357672500A67E8C /* AppDelegate.swift in Sources */,

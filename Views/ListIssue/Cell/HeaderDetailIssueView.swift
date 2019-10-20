@@ -9,7 +9,7 @@
 import UIKit
 import Reusable
 
-class HeaderDetailIssueView: UICollectionReusableView, Reusable {
+final class HeaderDetailIssueView: UICollectionReusableView, Reusable {
     
     // MARK: - Properties
     

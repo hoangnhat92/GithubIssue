@@ -8,40 +8,43 @@
 
 import Foundation
 
+typealias Repository = AuthenticateQuery.Data.Repository
+
 protocol AuthenticationViewModelDelegate: class {
-    func didLoginSuccessfully()
+    func didLoginSuccessfully(with repository: Repository)
     func didLoginFailed(_ error: Error)
 }
 
-class AuthenticationViewModel {
+final class AuthenticationViewModel {
     
     // MARK: - Attributes
     weak var delegate: AuthenticationViewModelDelegate?
-    private let network: ApolloNetwork
+    
+    private let network: AuthenticationNetwork
     
     // MARK: - Initializers
     
-    init(network: ApolloNetwork = ApolloNetwork()) {
+    init(network: AuthenticationNetwork = AuthenticationNetwork()) {
         self.network = network
     }
     
     // MARK: - Functions
     
     func loginWith(owner: String, repositiory: String, token: String) {
-        network.accessToken = AccessToken(tokenString: token)
-        network.authenticationWith(ownerName: owner, repository: repositiory) {
-            [weak self] (error) in
+        network.network.accessToken = AccessToken(tokenString: token)
+        network.authenticationWith(ownerName: owner, repositoryName: repositiory) {
+            [weak self] (result) in
             guard let self = self else { return }
             
-            if let error = error {
-                self.delegate?.didLoginFailed(error)
-            }else{
+            switch result {
+            case .success(let repository):
                 // Save access token after login successfully
-                AuthenticationResult.shared.accessToken = self.network.accessToken
+                AuthenticationResult.shared.accessToken = self.network.network.accessToken
                 
-                self.delegate?.didLoginSuccessfully()
+                self.delegate?.didLoginSuccessfully(with: repository)
+            case .failure(let error):
+                self.delegate?.didLoginFailed(error)
             }
         }
     }
-    
 }

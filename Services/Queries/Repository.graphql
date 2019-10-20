@@ -1,8 +1,5 @@
 query GetRepository($owner: String!, $name: String!, $limit: Int, $cursor: String) {
   repository(owner: $owner, name: $name) {
-    id
-    name
-    description
     issues(first: $limit, after: $cursor) {
       edges {
         node {
