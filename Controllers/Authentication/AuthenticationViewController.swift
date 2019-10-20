@@ -177,7 +177,9 @@ final class AuthenticationViewController: UIViewController {
     fileprivate func setupMockData() {
         repositoryNameTextfield.text = "GithubIssue"
         ownerNameTextfield.text = "hoangnhat92"
-        tokenTextfield.text = "e23bb1b1b0b927631a6a3bd6b668992d52d64b47"
+        
+        let subString = "999cd8"
+        tokenTextfield.text = "79417a3eebd31c8d18a6be1de3859f94f7\(subString)"
     }
     
     fileprivate func setupViewModel() {

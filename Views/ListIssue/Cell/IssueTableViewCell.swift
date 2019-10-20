@@ -121,4 +121,12 @@ final class IssueTableViewCell: UITableViewCell, Reusable {
             make.edges.equalTo(rightView)
         }
     }
+    
+    func bind(_ model: IssueDetail) {
+        idLabel.text = "\(model.number)"
+        titleLabel.text = model.title
+        createdAtLabel.text = model.createdAt
+        statusLabel.text = model.state.rawValue
+    }
 }
+

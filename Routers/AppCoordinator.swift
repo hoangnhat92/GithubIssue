@@ -33,8 +33,9 @@ class AppCoordinator: Coordinator {
         window?.makeKeyAndVisible()
     }
     
-    func goToListIssue() {
-        let listIssue = ListIssueCoordinator(navigation: navigationController)
+    func goToListIssue(with repository: Repository) {
+        let listIssue = ListIssueCoordinator(navigation: navigationController,
+                                             repository: repository)
         add(coordinator: listIssue)
         listIssue.start()
     }
@@ -52,6 +53,6 @@ class AppCoordinator: Coordinator {
 extension AppCoordinator: AuthenticationCoordinatorDelegate {
     func didFinishAuthentication(_ coordinator: AuthenticationCoordinator, _ repository: Repository) {
         remove(coordinator: coordinator)
-        goToListIssue()
+        goToListIssue(with: repository)
     }
 }

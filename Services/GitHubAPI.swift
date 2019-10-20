@@ -55,6 +55,11 @@ public final class AuthenticateQuery: GraphQLQuery {
         __typename
         id
         name
+        nameWithOwner
+        owner {
+          __typename
+          login
+        }
       }
     }
     """
@@ -107,6 +112,8 @@ public final class AuthenticateQuery: GraphQLQuery {
         GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
         GraphQLField("id", type: .nonNull(.scalar(GraphQLID.self))),
         GraphQLField("name", type: .nonNull(.scalar(String.self))),
+        GraphQLField("nameWithOwner", type: .nonNull(.scalar(String.self))),
+        GraphQLField("owner", type: .nonNull(.object(Owner.selections))),
       ]
 
       public private(set) var resultMap: ResultMap
@@ -115,8 +122,8 @@ public final class AuthenticateQuery: GraphQLQuery {
         self.resultMap = unsafeResultMap
       }
 
-      public init(id: GraphQLID, name: String) {
-        self.init(unsafeResultMap: ["__typename": "Repository", "id": id, "name": name])
+      public init(id: GraphQLID, name: String, nameWithOwner: String, owner: Owner) {
+        self.init(unsafeResultMap: ["__typename": "Repository", "id": id, "name": name, "nameWithOwner": nameWithOwner, "owner": owner.resultMap])
       }
 
       public var __typename: String {
@@ -146,6 +153,68 @@ public final class AuthenticateQuery: GraphQLQuery {
           resultMap.updateValue(newValue, forKey: "name")
         }
       }
+
+      /// The repository's name with owner.
+      public var nameWithOwner: String {
+        get {
+          return resultMap["nameWithOwner"]! as! String
+        }
+        set {
+          resultMap.updateValue(newValue, forKey: "nameWithOwner")
+        }
+      }
+
+      /// The User owner of the repository.
+      public var owner: Owner {
+        get {
+          return Owner(unsafeResultMap: resultMap["owner"]! as! ResultMap)
+        }
+        set {
+          resultMap.updateValue(newValue.resultMap, forKey: "owner")
+        }
+      }
+
+      public struct Owner: GraphQLSelectionSet {
+        public static let possibleTypes = ["User", "Organization"]
+
+        public static let selections: [GraphQLSelection] = [
+          GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
+          GraphQLField("login", type: .nonNull(.scalar(String.self))),
+        ]
+
+        public private(set) var resultMap: ResultMap
+
+        public init(unsafeResultMap: ResultMap) {
+          self.resultMap = unsafeResultMap
+        }
+
+        public static func makeUser(login: String) -> Owner {
+          return Owner(unsafeResultMap: ["__typename": "User", "login": login])
+        }
+
+        public static func makeOrganization(login: String) -> Owner {
+          return Owner(unsafeResultMap: ["__typename": "Organization", "login": login])
+        }
+
+        public var __typename: String {
+          get {
+            return resultMap["__typename"]! as! String
+          }
+          set {
+            resultMap.updateValue(newValue, forKey: "__typename")
+          }
+        }
+
+        /// The username used to login.
+        public var login: String {
+          get {
+            return resultMap["login"]! as! String
+          }
+          set {
+            resultMap.updateValue(newValue, forKey: "login")
+          }
+        }
+      }
     }
   }
 }
@@ -157,22 +226,22 @@ public final class GetRepositoryQuery: GraphQLQuery {
     query GetRepository($owner: String!, $name: String!, $limit: Int, $cursor: String) {
       repository(owner: $owner, name: $name) {
         __typename
-        issues(first: $limit, after: $cursor) {
+        id
+        name
+        owner {
+          __typename
+          login
+        }
+        nameWithOwner
+        issues(first: $limit, after: $cursor, orderBy: {field: CREATED_AT, direction: DESC}) {
           __typename
           edges {
             __typename
             node {
               __typename
-              id
-              title
-              state
-              bodyText
-              createdAt
-              author {
-                __typename
-                login
-              }
+              ...IssueDetail
             }
+            cursor
           }
           pageInfo {
             __typename
@@ -185,6 +254,8 @@ public final class GetRepositoryQuery: GraphQLQuery {
     """
 
   public let operationName = "GetRepository"
+
+  public var queryDocument: String { return operationDefinition.appending(IssueDetail.fragmentDefinition) }
 
   public var owner: String
   public var name: String
@@ -234,7 +305,11 @@ public final class GetRepositoryQuery: GraphQLQuery {
 
       public static let selections: [GraphQLSelection] = [
         GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
-        GraphQLField("issues", arguments: ["first": GraphQLVariable("limit"), "after": GraphQLVariable("cursor")], type: .nonNull(.object(Issue.selections))),
+        GraphQLField("id", type: .nonNull(.scalar(GraphQLID.self))),
+        GraphQLField("name", type: .nonNull(.scalar(String.self))),
+        GraphQLField("owner", type: .nonNull(.object(Owner.selections))),
+        GraphQLField("nameWithOwner", type: .nonNull(.scalar(String.self))),
+        GraphQLField("issues", arguments: ["first": GraphQLVariable("limit"), "after": GraphQLVariable("cursor"), "orderBy": ["field": "CREATED_AT", "direction": "DESC"]], type: .nonNull(.object(Issue.selections))),
       ]
 
       public private(set) var resultMap: ResultMap
@@ -243,8 +318,8 @@ public final class GetRepositoryQuery: GraphQLQuery {
         self.resultMap = unsafeResultMap
       }
 
-      public init(issues: Issue) {
-        self.init(unsafeResultMap: ["__typename": "Repository", "issues": issues.resultMap])
+      public init(id: GraphQLID, name: String, owner: Owner, nameWithOwner: String, issues: Issue) {
+        self.init(unsafeResultMap: ["__typename": "Repository", "id": id, "name": name, "owner": owner.resultMap, "nameWithOwner": nameWithOwner, "issues": issues.resultMap])
       }
 
       public var __typename: String {
@@ -256,6 +331,45 @@ public final class GetRepositoryQuery: GraphQLQuery {
         }
       }
 
+      public var id: GraphQLID {
+        get {
+          return resultMap["id"]! as! GraphQLID
+        }
+        set {
+          resultMap.updateValue(newValue, forKey: "id")
+        }
+      }
+
+      /// The name of the repository.
+      public var name: String {
+        get {
+          return resultMap["name"]! as! String
+        }
+        set {
+          resultMap.updateValue(newValue, forKey: "name")
+        }
+      }
+
+      /// The User owner of the repository.
+      public var owner: Owner {
+        get {
+          return Owner(unsafeResultMap: resultMap["owner"]! as! ResultMap)
+        }
+        set {
+          resultMap.updateValue(newValue.resultMap, forKey: "owner")
+        }
+      }
+
+      /// The repository's name with owner.
+      public var nameWithOwner: String {
+        get {
+          return resultMap["nameWithOwner"]! as! String
+        }
+        set {
+          resultMap.updateValue(newValue, forKey: "nameWithOwner")
+        }
+      }
+
       /// A list of issues that have been opened in the repository.
       public var issues: Issue {
         get {
@@ -263,6 +377,48 @@ public final class GetRepositoryQuery: GraphQLQuery {
         }
         set {
           resultMap.updateValue(newValue.resultMap, forKey: "issues")
+        }
+      }
+
+      public struct Owner: GraphQLSelectionSet {
+        public static let possibleTypes = ["User", "Organization"]
+
+        public static let selections: [GraphQLSelection] = [
+          GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
+          GraphQLField("login", type: .nonNull(.scalar(String.self))),
+        ]
+
+        public private(set) var resultMap: ResultMap
+
+        public init(unsafeResultMap: ResultMap) {
+          self.resultMap = unsafeResultMap
+        }
+
+        public static func makeUser(login: String) -> Owner {
+          return Owner(unsafeResultMap: ["__typename": "User", "login": login])
+        }
+
+        public static func makeOrganization(login: String) -> Owner {
+          return Owner(unsafeResultMap: ["__typename": "Organization", "login": login])
+        }
+
+        public var __typename: String {
+          get {
+            return resultMap["__typename"]! as! String
+          }
+          set {
+            resultMap.updateValue(newValue, forKey: "__typename")
+          }
+        }
+
+        /// The username used to login.
+        public var login: String {
+          get {
+            return resultMap["login"]! as! String
+          }
+          set {
+            resultMap.updateValue(newValue, forKey: "login")
+          }
         }
       }
 
@@ -320,6 +476,7 @@ public final class GetRepositoryQuery: GraphQLQuery {
           public static let selections: [GraphQLSelection] = [
             GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
             GraphQLField("node", type: .object(Node.selections)),
+            GraphQLField("cursor", type: .nonNull(.scalar(String.self))),
           ]
 
           public private(set) var resultMap: ResultMap
@@ -328,8 +485,8 @@ public final class GetRepositoryQuery: GraphQLQuery {
             self.resultMap = unsafeResultMap
           }
 
-          public init(node: Node? = nil) {
-            self.init(unsafeResultMap: ["__typename": "IssueEdge", "node": node.flatMap { (value: Node) -> ResultMap in value.resultMap }])
+          public init(node: Node? = nil, cursor: String) {
+            self.init(unsafeResultMap: ["__typename": "IssueEdge", "node": node.flatMap { (value: Node) -> ResultMap in value.resultMap }, "cursor": cursor])
           }
 
           public var __typename: String {
@@ -351,27 +508,28 @@ public final class GetRepositoryQuery: GraphQLQuery {
             }
           }
 
+          /// A cursor for use in pagination.
+          public var cursor: String {
+            get {
+              return resultMap["cursor"]! as! String
+            }
+            set {
+              resultMap.updateValue(newValue, forKey: "cursor")
+            }
+          }
+
           public struct Node: GraphQLSelectionSet {
             public static let possibleTypes = ["Issue"]
 
             public static let selections: [GraphQLSelection] = [
               GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
-              GraphQLField("id", type: .nonNull(.scalar(GraphQLID.self))),
-              GraphQLField("title", type: .nonNull(.scalar(String.self))),
-              GraphQLField("state", type: .nonNull(.scalar(IssueState.self))),
-              GraphQLField("bodyText", type: .nonNull(.scalar(String.self))),
-              GraphQLField("createdAt", type: .nonNull(.scalar(String.self))),
-              GraphQLField("author", type: .object(Author.selections)),
+              GraphQLFragmentSpread(IssueDetail.self),
             ]
 
             public private(set) var resultMap: ResultMap
 
             public init(unsafeResultMap: ResultMap) {
               self.resultMap = unsafeResultMap
-            }
-
-            public init(id: GraphQLID, title: String, state: IssueState, bodyText: String, createdAt: String, author: Author? = nil) {
-              self.init(unsafeResultMap: ["__typename": "Issue", "id": id, "title": title, "state": state, "bodyText": bodyText, "createdAt": createdAt, "author": author.flatMap { (value: Author) -> ResultMap in value.resultMap }])
             }
 
             public var __typename: String {
@@ -383,115 +541,28 @@ public final class GetRepositoryQuery: GraphQLQuery {
               }
             }
 
-            public var id: GraphQLID {
+            public var fragments: Fragments {
               get {
-                return resultMap["id"]! as! GraphQLID
+                return Fragments(unsafeResultMap: resultMap)
               }
               set {
-                resultMap.updateValue(newValue, forKey: "id")
+                resultMap += newValue.resultMap
               }
             }
 
-            /// Identifies the issue title.
-            public var title: String {
-              get {
-                return resultMap["title"]! as! String
-              }
-              set {
-                resultMap.updateValue(newValue, forKey: "title")
-              }
-            }
-
-            /// Identifies the state of the issue.
-            public var state: IssueState {
-              get {
-                return resultMap["state"]! as! IssueState
-              }
-              set {
-                resultMap.updateValue(newValue, forKey: "state")
-              }
-            }
-
-            /// Identifies the body of the issue rendered to text.
-            public var bodyText: String {
-              get {
-                return resultMap["bodyText"]! as! String
-              }
-              set {
-                resultMap.updateValue(newValue, forKey: "bodyText")
-              }
-            }
-
-            /// Identifies the date and time when the object was created.
-            public var createdAt: String {
-              get {
-                return resultMap["createdAt"]! as! String
-              }
-              set {
-                resultMap.updateValue(newValue, forKey: "createdAt")
-              }
-            }
-
-            /// The actor who authored the comment.
-            public var author: Author? {
-              get {
-                return (resultMap["author"] as? ResultMap).flatMap { Author(unsafeResultMap: $0) }
-              }
-              set {
-                resultMap.updateValue(newValue?.resultMap, forKey: "author")
-              }
-            }
-
-            public struct Author: GraphQLSelectionSet {
-              public static let possibleTypes = ["User", "Organization", "Bot", "Mannequin", "EnterpriseUserAccount"]
-
-              public static let selections: [GraphQLSelection] = [
-                GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
-                GraphQLField("login", type: .nonNull(.scalar(String.self))),
-              ]
-
+            public struct Fragments {
               public private(set) var resultMap: ResultMap
 
               public init(unsafeResultMap: ResultMap) {
                 self.resultMap = unsafeResultMap
               }
 
-              public static func makeUser(login: String) -> Author {
-                return Author(unsafeResultMap: ["__typename": "User", "login": login])
-              }
-
-              public static func makeOrganization(login: String) -> Author {
-                return Author(unsafeResultMap: ["__typename": "Organization", "login": login])
-              }
-
-              public static func makeBot(login: String) -> Author {
-                return Author(unsafeResultMap: ["__typename": "Bot", "login": login])
-              }
-
-              public static func makeMannequin(login: String) -> Author {
-                return Author(unsafeResultMap: ["__typename": "Mannequin", "login": login])
-              }
-
-              public static func makeEnterpriseUserAccount(login: String) -> Author {
-                return Author(unsafeResultMap: ["__typename": "EnterpriseUserAccount", "login": login])
-              }
-
-              public var __typename: String {
+              public var issueDetail: IssueDetail {
                 get {
-                  return resultMap["__typename"]! as! String
+                  return IssueDetail(unsafeResultMap: resultMap)
                 }
                 set {
-                  resultMap.updateValue(newValue, forKey: "__typename")
-                }
-              }
-
-              /// The username of the actor.
-              public var login: String {
-                get {
-                  return resultMap["login"]! as! String
-                }
-                set {
-                  resultMap.updateValue(newValue, forKey: "login")
+                  resultMap += newValue.resultMap
                 }
               }
             }
@@ -546,6 +617,181 @@ public final class GetRepositoryQuery: GraphQLQuery {
             }
           }
         }
+      }
+    }
+  }
+}
+
+public struct IssueDetail: GraphQLFragment {
+  /// The raw GraphQL definition of this fragment.
+  public static let fragmentDefinition =
+    """
+    fragment IssueDetail on Issue {
+      __typename
+      id
+      number
+      title
+      state
+      bodyText
+      createdAt
+      author {
+        __typename
+        login
+      }
+    }
+    """
+
+  public static let possibleTypes = ["Issue"]
+
+  public static let selections: [GraphQLSelection] = [
+    GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
+    GraphQLField("id", type: .nonNull(.scalar(GraphQLID.self))),
+    GraphQLField("number", type: .nonNull(.scalar(Int.self))),
+    GraphQLField("title", type: .nonNull(.scalar(String.self))),
+    GraphQLField("state", type: .nonNull(.scalar(IssueState.self))),
+    GraphQLField("bodyText", type: .nonNull(.scalar(String.self))),
+    GraphQLField("createdAt", type: .nonNull(.scalar(String.self))),
+    GraphQLField("author", type: .object(Author.selections)),
+  ]
+
+  public private(set) var resultMap: ResultMap
+
+  public init(unsafeResultMap: ResultMap) {
+    self.resultMap = unsafeResultMap
+  }
+
+  public init(id: GraphQLID, number: Int, title: String, state: IssueState, bodyText: String, createdAt: String, author: Author? = nil) {
+    self.init(unsafeResultMap: ["__typename": "Issue", "id": id, "number": number, "title": title, "state": state, "bodyText": bodyText, "createdAt": createdAt, "author": author.flatMap { (value: Author) -> ResultMap in value.resultMap }])
+  }
+
+  public var __typename: String {
+    get {
+      return resultMap["__typename"]! as! String
+    }
+    set {
+      resultMap.updateValue(newValue, forKey: "__typename")
+    }
+  }
+
+  public var id: GraphQLID {
+    get {
+      return resultMap["id"]! as! GraphQLID
+    }
+    set {
+      resultMap.updateValue(newValue, forKey: "id")
+    }
+  }
+
+  /// Identifies the issue number.
+  public var number: Int {
+    get {
+      return resultMap["number"]! as! Int
+    }
+    set {
+      resultMap.updateValue(newValue, forKey: "number")
+    }
+  }
+
+  /// Identifies the issue title.
+  public var title: String {
+    get {
+      return resultMap["title"]! as! String
+    }
+    set {
+      resultMap.updateValue(newValue, forKey: "title")
+    }
+  }
+
+  /// Identifies the state of the issue.
+  public var state: IssueState {
+    get {
+      return resultMap["state"]! as! IssueState
+    }
+    set {
+      resultMap.updateValue(newValue, forKey: "state")
+    }
+  }
+
+  /// Identifies the body of the issue rendered to text.
+  public var bodyText: String {
+    get {
+      return resultMap["bodyText"]! as! String
+    }
+    set {
+      resultMap.updateValue(newValue, forKey: "bodyText")
+    }
+  }
+
+  /// Identifies the date and time when the object was created.
+  public var createdAt: String {
+    get {
+      return resultMap["createdAt"]! as! String
+    }
+    set {
+      resultMap.updateValue(newValue, forKey: "createdAt")
+    }
+  }
+
+  /// The actor who authored the comment.
+  public var author: Author? {
+    get {
+      return (resultMap["author"] as? ResultMap).flatMap { Author(unsafeResultMap: $0) }
+    }
+    set {
+      resultMap.updateValue(newValue?.resultMap, forKey: "author")
+    }
+  }
+
+  public struct Author: GraphQLSelectionSet {
+    public static let possibleTypes = ["User", "Organization", "Bot", "Mannequin", "EnterpriseUserAccount"]
+
+    public static let selections: [GraphQLSelection] = [
+      GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
+      GraphQLField("login", type: .nonNull(.scalar(String.self))),
+    ]
+
+    public private(set) var resultMap: ResultMap
+
+    public init(unsafeResultMap: ResultMap) {
+      self.resultMap = unsafeResultMap
+    }
+
+    public static func makeUser(login: String) -> Author {
+      return Author(unsafeResultMap: ["__typename": "User", "login": login])
+    }
+
+    public static func makeOrganization(login: String) -> Author {
+      return Author(unsafeResultMap: ["__typename": "Organization", "login": login])
+    }
+
+    public static func makeBot(login: String) -> Author {
+      return Author(unsafeResultMap: ["__typename": "Bot", "login": login])
+    }
+
+    public static func makeMannequin(login: String) -> Author {
+      return Author(unsafeResultMap: ["__typename": "Mannequin", "login": login])
+    }
+
+    public static func makeEnterpriseUserAccount(login: String) -> Author {
+      return Author(unsafeResultMap: ["__typename": "EnterpriseUserAccount", "login": login])
+    }
+
+    public var __typename: String {
+      get {
+        return resultMap["__typename"]! as! String
+      }
+      set {
+        resultMap.updateValue(newValue, forKey: "__typename")
+      }
+    }
+
+    /// The username of the actor.
+    public var login: String {
+      get {
+        return resultMap["login"]! as! String
+      }
+      set {
+        resultMap.updateValue(newValue, forKey: "login")
       }
     }
   }

@@ -18,22 +18,38 @@ final class RepositoryNetwork {
     }
     
     func getListIssue(ownerName: String,
-                            repository: String,
-                            completionHandler: @escaping (Error?) -> Void) {
-        let query = AuthenticateQuery(owner: ownerName, name: repository)
-        network.client.fetch(query: query,
-                     cachePolicy: CachePolicy.fetchIgnoringCacheData) { (result) in
-                        switch result {
-                        case .success(let data):
-                            if let errors = data.errors {
-                                completionHandler(errors.first)
-                            } else {
-                                completionHandler(nil)
-                            }
-                        case .failure(let error):
-                            completionHandler(error)
-                        }
+                      repositoryName: String,
+                      limit: Int,
+                      cursor: String? = nil,
+                      completionHandler: @escaping (Result<Issue, Error>) -> Void) {
+        
+        let query = GetRepositoryQuery(owner: ownerName,
+                                       name: repositoryName,
+                                       limit: limit,
+                                       cursor: cursor)
+        
+        network.client.fetch(query: query) { (result) in
+            switch result {
+            case .success(let response):
+                
+                if let errors = response.errors {
+                    if let first = errors.first {
+                        completionHandler(.failure(first))
+                    }
+                } else {
+                    guard
+                        let data = response.data,
+                        let repository = data.repository else {
+                            completionHandler(.failure(CustomError.emptyData))
+                            return
+                    }
+                    
+                    let issue = repository.issues
+                    completionHandler(.success(issue))
+                }
+            case .failure(let error):
+                completionHandler(.failure(error))
+            }
         }
-    }
-    
+    }    
 }

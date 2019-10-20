@@ -34,7 +34,7 @@ final class AuthenticationNetwork {
                                         }
                                     } else {
                                         guard let data = response.data, let repository = data.repository else {                                            
-                                            completionHandler(.failure(CustomError.empty))
+                                            completionHandler(.failure(CustomError.emptyData))
                                             return
                                         }
                                         

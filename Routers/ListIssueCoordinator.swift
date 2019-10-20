@@ -13,20 +13,24 @@ class ListIssueCoordinator: Coordinator {
     
     // MARK: - Attributes
     
+    let repository: Repository
+    
     var childCoordinators = [Coordinator]()
     
     var navigationController: UINavigationController
     
     // MARK: - Initializers
     
-    init(navigation: UINavigationController) {
+    init(navigation: UINavigationController, repository: Repository) {
         self.navigationController = navigation
+        self.repository = repository
     }
     
     // MARK: - Functions
     
     func start() {
-        let listIssue = ListIssueViewController()
+        let viewModel = ListIssueViewModel(repository: repository)
+        let listIssue = ListIssueViewController(viewModel: viewModel)
         navigationController.setViewControllers([listIssue], animated: true)        
     }    
 }

@@ -9,5 +9,5 @@
 import Foundation
 
 enum CustomError: Error {
-    case empty
+    case emptyData
 }
