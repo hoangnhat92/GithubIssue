@@ -8,26 +8,127 @@
 
 import Foundation
 
+protocol DetailIssueViewModelDelegate: class {
+    func performAction(_ action: DetailIssueViewModel.Action)
+}
+
 class DetailIssueViewModel {
     
     // MARK: - Attributes
+    weak var delegate: DetailIssueViewModelDelegate?
     
-    let network: RepositoryNetwork
+    private let network: RepositoryNetwork
     
-    let issue: IssueDetail
+    private let issueDetail: IssueDetail
+    
+    private var commentIssue: CommentIssue?
+    
+    private var listComment: [CommentDetail] = []
     
     // MARK: - Initializers
     
     init(network: RepositoryNetwork = RepositoryNetwork(),
-         issue: IssueDetail) {
+         issueDetail: IssueDetail) {
         self.network = network
-        self.issue = issue
+        self.issueDetail = issueDetail
+    }
+    
+    // MARK: - Fetch API
+    
+    func getListComment() {
+        network.getListComment(ownerName: issueDetail.repository.owner.login,
+                               repositoryName: issueDetail.repository.name,
+                               number: issueDetail.number,
+                               limit: Constants.limit) { (result) in
+                                switch result {
+                                case .success(let comment):
+                                    self.commentIssue = comment
+                                    
+                                    guard let edges = comment.comments.edges else {
+                                        self.delegate?.performAction(.didFail(CustomError.emptyData))
+                                        return
+                                    }
+                                    
+                                    let comments = edges.compactMap({ $0?.node?.fragments.commentDetail })
+                                    self.listComment = comments
+                                    
+                                    self.delegate?.performAction(.didFetch)
+                                    
+                                case .failure(let error):
+                                    self.delegate?.performAction(.didFail(error))
+                                }
+        }
+    }
+    
+    func loadMoreListComment() {
+        network.getListComment(ownerName: issueDetail.repository.owner.login,
+                               repositoryName: issueDetail.repository.name,
+                               number: issueDetail.number,
+                               limit: Constants.limit,
+                               cursor: commentIssue?.comments.pageInfo.endCursor) { (result) in
+                                switch result {
+                                case .success(let comment):
+                                    self.commentIssue = comment
+                                    
+                                    guard let edges = comment.comments.edges else {
+                                        self.delegate?.performAction(.didFail(CustomError.emptyData))
+                                        return
+                                    }
+                                    
+                                    let comments = edges.compactMap({ $0?.node?.fragments.commentDetail })
+                                    self.listComment += comments
+                                    
+                                    self.delegate?.performAction(.didFetch)
+                                case .failure(let error):
+                                    self.delegate?.performAction(.didFail(error))
+                                }
+        }
     }
     
     // MARK: - Functions
-    func getHeaderDetailIssue() -> HeaderDetailissueViewModel{
-        return HeaderDetailissueViewModel(title: issue.title,
-                                          body: issue.bodyText)
+    func getHeaderDetailIssue() -> HeaderDetailissueViewModel? {
+        guard let commentIssue = commentIssue else { return nil }
+        
+        let issueDetail = commentIssue.fragments.issueDetail
+        return HeaderDetailissueViewModel(title: issueDetail.title,
+                                          body: issueDetail.bodyText)
     }
     
+    
+    func shouldLoadMoreData(_ indexPath: IndexPath) -> Bool {
+        guard
+            let commentIssue = commentIssue,
+            let edges = commentIssue.comments.edges else {
+                return false
+        }
+        
+        if indexPath.row == edges.count - 1 {
+            return commentIssue.comments.pageInfo.hasNextPage
+        }
+        
+        return false
+    }
+    
+    func numberOfItemInSections(_ section: Int) -> Int {
+        return listComment.count
+    }
+    
+    func itemForIndexPath(_ indexPath: IndexPath) -> CommentDetail? {
+        guard indexPath.row < listComment.count else { return nil }
+        
+        return listComment[indexPath.row]
+    }
+}
+
+// MARK: - Configurations
+extension DetailIssueViewModel {
+    enum Constants {
+        static let limit: Int = 5
+    }
+    
+    enum Action {
+        case didFetch
+        case didLoadMore
+        case didFail(Error)
+    }
 }

@@ -8,8 +8,22 @@
 
 import UIKit
 import Reusable
+import SDWebImage
 
 final class CommentCollectionViewCell: UICollectionViewCell, Reusable {
+    
+    var viewModel: CommentDetail! {
+        didSet {
+            guard let author = viewModel.author else { return }
+            
+            if let url = URL(string: author.avatarUrl) {
+                avatarImageView.sd_setImage(with: url)
+            }
+            
+            ownerNameLabel.text = author.login
+            commentLabel.text = viewModel.bodyText
+        }
+    }
     
     // MARK: - Properties
     lazy var avatarImageView: UIImageView = {

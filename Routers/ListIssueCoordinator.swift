@@ -36,7 +36,7 @@ class ListIssueCoordinator: Coordinator {
     }
     
     func startDetailIssue(_ issue: IssueDetail) {
-        let viewModel = DetailIssueViewModel(issue: issue)
+        let viewModel = DetailIssueViewModel(issueDetail: issue)
         let detailIssue = DetailIssueViewController(viewModel: viewModel)
         navigationController.pushViewController(detailIssue, animated: true)
     }

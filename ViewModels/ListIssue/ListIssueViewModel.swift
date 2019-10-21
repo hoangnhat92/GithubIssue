@@ -19,13 +19,13 @@ class ListIssueViewModel {
     // MARK: - Attributes
     weak var delegate: ListIssueViewModelDelegate?
     
-    let repository: Repository
+    private let repository: Repository
     
-    let network: RepositoryNetwork
+    private let network: RepositoryNetwork
     
-    var issue: Issue?
+    private var issue: Issue?
     
-    var listIssue: [IssueDetail] = []
+    private var listIssue: [IssueDetail] = []
     
     // MARK: - Initializers
     

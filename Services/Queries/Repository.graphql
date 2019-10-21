@@ -21,6 +21,36 @@ query GetRepository($owner: String!, $name: String!, $limit: Int, $cursor: Strin
   }
 }
 
+query GetListComments($owner: String!, $name: String!, $number: Int!, $limit: Int, $cursor: String) {
+  repository(owner: $owner, name: $name) {
+    issue(number: $number) {
+      ...IssueDetail
+      comments(first: $limit, after: $cursor) {
+        edges {
+          node {
+            ...CommentDetail
+          }
+          cursor
+        }
+        pageInfo {
+          endCursor
+          hasNextPage
+        }
+      }
+    }
+  }
+}
+
+
+fragment CommentDetail on Comment {
+  author {
+    avatarUrl
+    login
+  }
+  bodyText
+  createdAt
+}
+
 fragment IssueDetail on Issue {
   id
   number
@@ -30,5 +60,11 @@ fragment IssueDetail on Issue {
   createdAt
   author {
     login
+  }
+  repository {
+    name
+    owner{
+      login
+    }
   }
 }
