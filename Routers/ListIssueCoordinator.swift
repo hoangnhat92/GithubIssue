@@ -31,6 +31,19 @@ class ListIssueCoordinator: Coordinator {
     func start() {
         let viewModel = ListIssueViewModel(repository: repository)
         let listIssue = ListIssueViewController(viewModel: viewModel)
+        listIssue.delegate = self
         navigationController.setViewControllers([listIssue], animated: true)        
-    }    
+    }
+    
+    func startDetailIssue(_ issue: IssueDetail) {
+        let viewModel = DetailIssueViewModel(issue: issue)
+        let detailIssue = DetailIssueViewController(viewModel: viewModel)
+        navigationController.pushViewController(detailIssue, animated: true)
+    }
+}
+
+extension ListIssueCoordinator: ListIssueViewControllerDelegate {
+    func goToDetailIssue(_ issue: IssueDetail) {
+        startDetailIssue(issue)
+    }
 }

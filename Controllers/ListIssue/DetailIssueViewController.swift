@@ -47,6 +47,18 @@ final class DetailIssueViewController: UIViewController {
     
     var bottomConstraint: Constraint? = nil
     
+    let viewModel: DetailIssueViewModel
+    
+    // MARK: - Initializers
+    init(viewModel: DetailIssueViewModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     // MARK: - Life cycle
     
     override func viewDidLoad() {
@@ -149,18 +161,22 @@ extension DetailIssueViewController: UICollectionViewDelegate, UICollectionViewD
     }
             
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(for: indexPath, cellType: CommentCollectionViewCell.self)
+        let cell = collectionView.dequeueReusableCell(for: indexPath,
+                                                      cellType: CommentCollectionViewCell.self)
         return cell
     }
     
-    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+    func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String,
+                        at indexPath: IndexPath) -> UICollectionReusableView {
         let header = collectionView.dequeueReusableSupplementaryView(ofKind: UICollectionView.elementKindSectionHeader,
                                                                      for: indexPath,
                                                                      viewType: HeaderDetailIssueView.self)
+        header.bindViewModel(viewModel.getHeaderDetailIssue())
         return header
     }
         
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout,
+                        referenceSizeForHeaderInSection section: Int) -> CGSize {
         let indexPath = IndexPath(row: 0, section: section)
         
         let header = collectionView.dequeueReusableSupplementaryView(ofKind: UICollectionView.elementKindSectionHeader,
@@ -174,7 +190,4 @@ extension DetailIssueViewController: UICollectionViewDelegate, UICollectionViewD
         let frame = header.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize)
         return CGSize(width: collectionView.frame.size.width, height: frame.height)
     }
-    
-   
-    
 }

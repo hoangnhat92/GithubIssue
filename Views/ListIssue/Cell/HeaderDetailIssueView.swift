@@ -86,8 +86,14 @@ final class HeaderDetailIssueView: UICollectionReusableView, Reusable {
     
     
     // MARK: - Functions
+    
     func setPreferredLayoutWith(_ width: CGFloat) {
         titleLabel.preferredMaxLayoutWidth = width
         bodyLabel.preferredMaxLayoutWidth = width
+    }
+    
+    func bindViewModel(_ viewModel: HeaderDetailissueViewModel) {
+        titleLabel.text = viewModel.title
+        bodyLabel.text = viewModel.body
     }
 }

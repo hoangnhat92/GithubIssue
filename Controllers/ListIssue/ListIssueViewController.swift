@@ -10,9 +10,16 @@ import UIKit
 import Reusable
 import Toaster
 
+
+protocol ListIssueViewControllerDelegate: class {
+    func goToDetailIssue(_ issue: IssueDetail)
+}
+
 final class ListIssueViewController: UIViewController {
     
     // MARK: - Properties
+    
+    weak var delegate: ListIssueViewControllerDelegate?
     
     let viewModel: ListIssueViewModel
     
@@ -34,7 +41,7 @@ final class ListIssueViewController: UIViewController {
         return refresh
     }()
     
-    // MARK: - Initialize
+    // MARK: - Initializers
     
     init(viewModel: ListIssueViewModel) {
         self.viewModel = viewModel
@@ -140,10 +147,6 @@ extension ListIssueViewController: UITableViewDataSource, UITableViewDelegate {
             cell.bind(issue)
         }
         
-        if viewModel.shouldLoadMoreData(indexPath) {
-            viewModel.loadMoreListIssue()
-        }
-        
         return cell
     }
     
@@ -152,8 +155,15 @@ extension ListIssueViewController: UITableViewDataSource, UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let view = DetailIssueViewController()
-        self.navigationController?.pushViewController(view, animated: true)
+        guard let issue = viewModel.itemForIndexPath(indexPath) else { return }
+        
+        delegate?.goToDetailIssue(issue)
+    }
+    
+    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        if viewModel.shouldLoadMoreData(indexPath) {
+            viewModel.loadMoreListIssue()
+        }
     }
 }
 

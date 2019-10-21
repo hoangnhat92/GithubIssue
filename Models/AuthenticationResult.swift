@@ -11,13 +11,11 @@ import KeychainSwift
 
 final public class AuthenticationResult {
     
+    // MARK: - Attributes
+      
     static let shared = AuthenticationResult()
     
     let keychain: KeychainSwift
-    
-    init(keychain: KeychainSwift = KeychainSwift()) {
-        self.keychain = keychain
-    }
     
     var accessToken: AccessToken? {
         set {
@@ -35,6 +33,12 @@ final public class AuthenticationResult {
             
             return nil
         }
+    }
+    
+    // MARK: - Initializers
+    
+    init(keychain: KeychainSwift = KeychainSwift()) {
+        self.keychain = keychain
     }
 }
 
