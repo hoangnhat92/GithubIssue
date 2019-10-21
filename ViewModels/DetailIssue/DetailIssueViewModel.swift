@@ -17,7 +17,9 @@ class DetailIssueViewModel {
     // MARK: - Attributes
     weak var delegate: DetailIssueViewModelDelegate?
     
-    private let network: RepositoryNetwork
+    private let repositoryNetwork: RepositoryNetwork
+    
+    private let commentNetwork: CommentNetwork
     
     private let issueDetail: IssueDetail
     
@@ -27,19 +29,24 @@ class DetailIssueViewModel {
     
     // MARK: - Initializers
     
-    init(network: RepositoryNetwork = RepositoryNetwork(),
+    init(repositoryNetwork: RepositoryNetwork = RepositoryNetwork(),
+         commentNetwork: CommentNetwork = CommentNetwork(),
          issueDetail: IssueDetail) {
-        self.network = network
+        self.repositoryNetwork = repositoryNetwork
+        self.commentNetwork = commentNetwork
         self.issueDetail = issueDetail
     }
     
     // MARK: - Fetch API
     
     func getListComment() {
-        network.getListComment(ownerName: issueDetail.repository.owner.login,
+        repositoryNetwork.getListComment(ownerName: issueDetail.repository.owner.login,
                                repositoryName: issueDetail.repository.name,
                                number: issueDetail.number,
-                               limit: Constants.limit) { (result) in
+                               limit: Constants.limit) {
+                                [weak self] (result) in
+                                guard let self = self else { return }
+                                
                                 switch result {
                                 case .success(let comment):
                                     self.commentIssue = comment
@@ -61,11 +68,14 @@ class DetailIssueViewModel {
     }
     
     func loadMoreListComment() {
-        network.getListComment(ownerName: issueDetail.repository.owner.login,
+        repositoryNetwork.getListComment(ownerName: issueDetail.repository.owner.login,
                                repositoryName: issueDetail.repository.name,
                                number: issueDetail.number,
                                limit: Constants.limit,
-                               cursor: commentIssue?.comments.pageInfo.endCursor) { (result) in
+                               cursor: commentIssue?.comments.pageInfo.endCursor) {
+                                [weak self] (result) in
+                                guard let self = self else { return }
+                                
                                 switch result {
                                 case .success(let comment):
                                     self.commentIssue = comment

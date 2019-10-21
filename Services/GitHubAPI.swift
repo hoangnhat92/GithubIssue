@@ -219,6 +219,283 @@ public final class AuthenticateQuery: GraphQLQuery {
   }
 }
 
+public final class AddCommentToIssueMutation: GraphQLMutation {
+  /// The raw GraphQL definition of this operation.
+  public let operationDefinition =
+    """
+    mutation AddCommentToIssue($id: ID!, $body: String!) {
+      addComment(input: {subjectId: $id, body: $body}) {
+        __typename
+        clientMutationId
+      }
+    }
+    """
+
+  public let operationName = "AddCommentToIssue"
+
+  public var id: GraphQLID
+  public var body: String
+
+  public init(id: GraphQLID, body: String) {
+    self.id = id
+    self.body = body
+  }
+
+  public var variables: GraphQLMap? {
+    return ["id": id, "body": body]
+  }
+
+  public struct Data: GraphQLSelectionSet {
+    public static let possibleTypes = ["Mutation"]
+
+    public static let selections: [GraphQLSelection] = [
+      GraphQLField("addComment", arguments: ["input": ["subjectId": GraphQLVariable("id"), "body": GraphQLVariable("body")]], type: .object(AddComment.selections)),
+    ]
+
+    public private(set) var resultMap: ResultMap
+
+    public init(unsafeResultMap: ResultMap) {
+      self.resultMap = unsafeResultMap
+    }
+
+    public init(addComment: AddComment? = nil) {
+      self.init(unsafeResultMap: ["__typename": "Mutation", "addComment": addComment.flatMap { (value: AddComment) -> ResultMap in value.resultMap }])
+    }
+
+    /// Adds a comment to an Issue or Pull Request.
+    public var addComment: AddComment? {
+      get {
+        return (resultMap["addComment"] as? ResultMap).flatMap { AddComment(unsafeResultMap: $0) }
+      }
+      set {
+        resultMap.updateValue(newValue?.resultMap, forKey: "addComment")
+      }
+    }
+
+    public struct AddComment: GraphQLSelectionSet {
+      public static let possibleTypes = ["AddCommentPayload"]
+
+      public static let selections: [GraphQLSelection] = [
+        GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
+        GraphQLField("clientMutationId", type: .scalar(String.self)),
+      ]
+
+      public private(set) var resultMap: ResultMap
+
+      public init(unsafeResultMap: ResultMap) {
+        self.resultMap = unsafeResultMap
+      }
+
+      public init(clientMutationId: String? = nil) {
+        self.init(unsafeResultMap: ["__typename": "AddCommentPayload", "clientMutationId": clientMutationId])
+      }
+
+      public var __typename: String {
+        get {
+          return resultMap["__typename"]! as! String
+        }
+        set {
+          resultMap.updateValue(newValue, forKey: "__typename")
+        }
+      }
+
+      /// A unique identifier for the client performing the mutation.
+      public var clientMutationId: String? {
+        get {
+          return resultMap["clientMutationId"] as? String
+        }
+        set {
+          resultMap.updateValue(newValue, forKey: "clientMutationId")
+        }
+      }
+    }
+  }
+}
+
+public final class EditCommentIssueMutation: GraphQLMutation {
+  /// The raw GraphQL definition of this operation.
+  public let operationDefinition =
+    """
+    mutation EditCommentIssue($id: ID!, $body: String!) {
+      updateIssueComment(input: {id: $id, body: $body}) {
+        __typename
+        clientMutationId
+      }
+    }
+    """
+
+  public let operationName = "EditCommentIssue"
+
+  public var id: GraphQLID
+  public var body: String
+
+  public init(id: GraphQLID, body: String) {
+    self.id = id
+    self.body = body
+  }
+
+  public var variables: GraphQLMap? {
+    return ["id": id, "body": body]
+  }
+
+  public struct Data: GraphQLSelectionSet {
+    public static let possibleTypes = ["Mutation"]
+
+    public static let selections: [GraphQLSelection] = [
+      GraphQLField("updateIssueComment", arguments: ["input": ["id": GraphQLVariable("id"), "body": GraphQLVariable("body")]], type: .object(UpdateIssueComment.selections)),
+    ]
+
+    public private(set) var resultMap: ResultMap
+
+    public init(unsafeResultMap: ResultMap) {
+      self.resultMap = unsafeResultMap
+    }
+
+    public init(updateIssueComment: UpdateIssueComment? = nil) {
+      self.init(unsafeResultMap: ["__typename": "Mutation", "updateIssueComment": updateIssueComment.flatMap { (value: UpdateIssueComment) -> ResultMap in value.resultMap }])
+    }
+
+    /// Updates an IssueComment object.
+    public var updateIssueComment: UpdateIssueComment? {
+      get {
+        return (resultMap["updateIssueComment"] as? ResultMap).flatMap { UpdateIssueComment(unsafeResultMap: $0) }
+      }
+      set {
+        resultMap.updateValue(newValue?.resultMap, forKey: "updateIssueComment")
+      }
+    }
+
+    public struct UpdateIssueComment: GraphQLSelectionSet {
+      public static let possibleTypes = ["UpdateIssueCommentPayload"]
+
+      public static let selections: [GraphQLSelection] = [
+        GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
+        GraphQLField("clientMutationId", type: .scalar(String.self)),
+      ]
+
+      public private(set) var resultMap: ResultMap
+
+      public init(unsafeResultMap: ResultMap) {
+        self.resultMap = unsafeResultMap
+      }
+
+      public init(clientMutationId: String? = nil) {
+        self.init(unsafeResultMap: ["__typename": "UpdateIssueCommentPayload", "clientMutationId": clientMutationId])
+      }
+
+      public var __typename: String {
+        get {
+          return resultMap["__typename"]! as! String
+        }
+        set {
+          resultMap.updateValue(newValue, forKey: "__typename")
+        }
+      }
+
+      /// A unique identifier for the client performing the mutation.
+      public var clientMutationId: String? {
+        get {
+          return resultMap["clientMutationId"] as? String
+        }
+        set {
+          resultMap.updateValue(newValue, forKey: "clientMutationId")
+        }
+      }
+    }
+  }
+}
+
+public final class DeleteCommentIssueMutation: GraphQLMutation {
+  /// The raw GraphQL definition of this operation.
+  public let operationDefinition =
+    """
+    mutation DeleteCommentIssue($id: ID!) {
+      deleteIssueComment(input: {id: $id}) {
+        __typename
+        clientMutationId
+      }
+    }
+    """
+
+  public let operationName = "DeleteCommentIssue"
+
+  public var id: GraphQLID
+
+  public init(id: GraphQLID) {
+    self.id = id
+  }
+
+  public var variables: GraphQLMap? {
+    return ["id": id]
+  }
+
+  public struct Data: GraphQLSelectionSet {
+    public static let possibleTypes = ["Mutation"]
+
+    public static let selections: [GraphQLSelection] = [
+      GraphQLField("deleteIssueComment", arguments: ["input": ["id": GraphQLVariable("id")]], type: .object(DeleteIssueComment.selections)),
+    ]
+
+    public private(set) var resultMap: ResultMap
+
+    public init(unsafeResultMap: ResultMap) {
+      self.resultMap = unsafeResultMap
+    }
+
+    public init(deleteIssueComment: DeleteIssueComment? = nil) {
+      self.init(unsafeResultMap: ["__typename": "Mutation", "deleteIssueComment": deleteIssueComment.flatMap { (value: DeleteIssueComment) -> ResultMap in value.resultMap }])
+    }
+
+    /// Deletes an IssueComment object.
+    public var deleteIssueComment: DeleteIssueComment? {
+      get {
+        return (resultMap["deleteIssueComment"] as? ResultMap).flatMap { DeleteIssueComment(unsafeResultMap: $0) }
+      }
+      set {
+        resultMap.updateValue(newValue?.resultMap, forKey: "deleteIssueComment")
+      }
+    }
+
+    public struct DeleteIssueComment: GraphQLSelectionSet {
+      public static let possibleTypes = ["DeleteIssueCommentPayload"]
+
+      public static let selections: [GraphQLSelection] = [
+        GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
+        GraphQLField("clientMutationId", type: .scalar(String.self)),
+      ]
+
+      public private(set) var resultMap: ResultMap
+
+      public init(unsafeResultMap: ResultMap) {
+        self.resultMap = unsafeResultMap
+      }
+
+      public init(clientMutationId: String? = nil) {
+        self.init(unsafeResultMap: ["__typename": "DeleteIssueCommentPayload", "clientMutationId": clientMutationId])
+      }
+
+      public var __typename: String {
+        get {
+          return resultMap["__typename"]! as! String
+        }
+        set {
+          resultMap.updateValue(newValue, forKey: "__typename")
+        }
+      }
+
+      /// A unique identifier for the client performing the mutation.
+      public var clientMutationId: String? {
+        get {
+          return resultMap["clientMutationId"] as? String
+        }
+        set {
+          resultMap.updateValue(newValue, forKey: "clientMutationId")
+        }
+      }
+    }
+  }
+}
+
 public final class GetRepositoryQuery: GraphQLQuery {
   /// The raw GraphQL definition of this operation.
   public let operationDefinition =

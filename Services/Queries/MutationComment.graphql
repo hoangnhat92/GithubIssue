@@ -1,0 +1,17 @@
+mutation AddCommentToIssue($id: ID!, $body: String!) {
+  addComment(input: {subjectId: $id, body: $body}) {
+    clientMutationId
+  }
+}
+
+mutation EditCommentIssue($id: ID!, $body: String!) {
+  updateIssueComment(input: {id: $id, body: $body}) {
+    clientMutationId
+  }
+}
+
+mutation DeleteCommentIssue($id: ID!) {
+  deleteIssueComment(input: { id:$id } ) {
+    clientMutationId
+  }
+}
