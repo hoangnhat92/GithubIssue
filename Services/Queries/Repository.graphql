@@ -17,6 +17,7 @@ query GetRepository($owner: String!, $name: String!, $states: [IssueState!], $li
         endCursor
         hasNextPage
       }
+      totalCount
     }
   }
 }

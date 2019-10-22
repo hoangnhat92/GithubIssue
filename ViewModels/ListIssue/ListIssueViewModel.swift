@@ -77,10 +77,11 @@ class ListIssueViewModel {
     }
     
     func watchListIssue() {
+        guard let issue = self.issue else { return }
         network.watchListIssue(ownerName: repository.owner.login,
                                repositoryName: repository.name,
                                states: states,
-                               limit: Constants.limit) {
+                               limit: issue.totalCount) {
                                 [weak self ] (result) in
                                 guard let self = self else { return }
                                 

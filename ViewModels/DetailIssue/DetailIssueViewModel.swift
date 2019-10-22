@@ -107,10 +107,12 @@ class DetailIssueViewModel {
     }
     
     func watchListComment() {
+        guard let commentIssue = self.commentIssue else { return }
+        
         repositoryNetwork.watchListComment(ownerName: issueDetail.repository.owner.login,
                                            repositoryName: issueDetail.repository.name,
                                            number: issueDetail.number,
-                                           limit: Constants.limit) {
+                                           limit: commentIssue.comments.totalCount) {
                                             [weak self] (result) in
                                             guard let self = self else { return }
                                                                                         

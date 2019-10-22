@@ -858,6 +858,7 @@ public final class GetRepositoryQuery: GraphQLQuery {
             endCursor
             hasNextPage
           }
+          totalCount
         }
       }
     }
@@ -1041,6 +1042,7 @@ public final class GetRepositoryQuery: GraphQLQuery {
           GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
           GraphQLField("edges", type: .list(.object(Edge.selections))),
           GraphQLField("pageInfo", type: .nonNull(.object(PageInfo.selections))),
+          GraphQLField("totalCount", type: .nonNull(.scalar(Int.self))),
         ]
 
         public private(set) var resultMap: ResultMap
@@ -1049,8 +1051,8 @@ public final class GetRepositoryQuery: GraphQLQuery {
           self.resultMap = unsafeResultMap
         }
 
-        public init(edges: [Edge?]? = nil, pageInfo: PageInfo) {
-          self.init(unsafeResultMap: ["__typename": "IssueConnection", "edges": edges.flatMap { (value: [Edge?]) -> [ResultMap?] in value.map { (value: Edge?) -> ResultMap? in value.flatMap { (value: Edge) -> ResultMap in value.resultMap } } }, "pageInfo": pageInfo.resultMap])
+        public init(edges: [Edge?]? = nil, pageInfo: PageInfo, totalCount: Int) {
+          self.init(unsafeResultMap: ["__typename": "IssueConnection", "edges": edges.flatMap { (value: [Edge?]) -> [ResultMap?] in value.map { (value: Edge?) -> ResultMap? in value.flatMap { (value: Edge) -> ResultMap in value.resultMap } } }, "pageInfo": pageInfo.resultMap, "totalCount": totalCount])
         }
 
         public var __typename: String {
@@ -1079,6 +1081,16 @@ public final class GetRepositoryQuery: GraphQLQuery {
           }
           set {
             resultMap.updateValue(newValue.resultMap, forKey: "pageInfo")
+          }
+        }
+
+        /// Identifies the total count of items in the connection.
+        public var totalCount: Int {
+          get {
+            return resultMap["totalCount"]! as! Int
+          }
+          set {
+            resultMap.updateValue(newValue, forKey: "totalCount")
           }
         }
 
