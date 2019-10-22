@@ -17,36 +17,37 @@ final class IssueTableViewCell: UITableViewCell, Reusable {
     private lazy var idLabel: UILabel = {
         let lb = UILabel()
         lb.textColor = .white
-        lb.text = "1"
         lb.textAlignment = .center
+        lb.font = Font.bold.title
         return lb
     }()
     
     private lazy var titleLabel: UILabel = {
         let lb = UILabel()
+        lb.numberOfLines = 1
         lb.textColor = .white
-        lb.text = "Title"
+        lb.font = Font.medium.subttile
         return lb
     }()
     
     private lazy var createdAtLabel: UILabel = {
         let lb = UILabel()
         lb.textColor = .white
-        lb.text = "Created at"
+        lb.font = Font.regular.small
         return lb
     }()
     
     private lazy var statusLabel: UILabel = {
         let lb = UILabel()
         lb.textColor = .white
-        lb.text = "Open"
+        lb.font = Font.regular.small
         return lb
     }()
     
     private lazy var ownerNameLabel: UILabel = {
         let lb = UILabel()
         lb.textColor = .white
-        lb.text = "Nhat"
+        lb.font = Font.regular.small
         return lb
     }()
     
@@ -82,7 +83,7 @@ final class IssueTableViewCell: UITableViewCell, Reusable {
     
     fileprivate func setupView() {
         
-        backgroundColor = .black
+        backgroundColor = UIColor.darkGray
         
         leftView.addSubview(idLabel)
         addSubview(leftView)
@@ -103,19 +104,20 @@ final class IssueTableViewCell: UITableViewCell, Reusable {
     }
     
     fileprivate func setupLayout() {
-        
         leftView.snp.makeConstraints { (make) in
-            make.left.top.bottom.equalTo(self).inset(5)
-            make.width.height.equalTo(80)
+            make.left.top.equalTo(self)
+            make.bottom.equalTo(self).offset(-10)
+            make.width.equalTo(80)
         }
         
         idLabel.snp.makeConstraints { (make) in
-            make.edges.equalTo(leftView).offset(5)
+            make.edges.equalTo(leftView)
         }
         
         rightView.snp.makeConstraints { (make) in            
             make.left.equalTo(leftView.snp.right)
-            make.right.top.bottom.equalTo(self).inset(5)
+            make.right.top.equalTo(self)
+            make.bottom.equalTo(self).offset(-10)
         }
         
         mainStackView.snp.makeConstraints { (make) in
@@ -124,10 +126,24 @@ final class IssueTableViewCell: UITableViewCell, Reusable {
     }
     
     func bind(_ model: IssueDetail) {
-        idLabel.text = "\(model.number)"
-        titleLabel.text = model.title                
+        idLabel.text = "#\(model.number)"
+        titleLabel.text = model.title
+        ownerNameLabel.text = model.author?.login
         createdAtLabel.text = model.createdAt.timeAgo()
         statusLabel.text = model.state.rawValue
+        statusLabel.textColor = model.statusColor
     }
 }
 
+fileprivate extension IssueDetail {
+    var statusColor: UIColor {
+        switch self.state {
+        case .open:
+            return .green
+        case .closed:
+           return .red
+        case .__unknown(_):
+            return .white
+        }
+    }
+}

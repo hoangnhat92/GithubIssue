@@ -18,7 +18,7 @@ final class HeaderDetailIssueView: UICollectionReusableView, Reusable {
         lb.numberOfLines = 0
         lb.lineBreakMode = .byWordWrapping
         lb.textColor = .white
-        lb.text = "title"
+        lb.font = Font.bold.title
         return lb
     }()
     
@@ -27,15 +27,15 @@ final class HeaderDetailIssueView: UICollectionReusableView, Reusable {
         lb.numberOfLines = 0
         lb.lineBreakMode = .byWordWrapping
         lb.textColor = .white
-        lb.text = "description"
+        lb.font = Font.regular.normal
         return lb
     }()
     
     private lazy var commentLabel: UILabel = {
         let lb = UILabel()
-        lb.textColor = .white
-        lb.font = UIFont.boldSystemFont(ofSize: 20)
         lb.text = "Comments"
+        lb.textColor = .white
+        lb.font = Font.bold.title
         return lb
     }()
     
@@ -62,21 +62,22 @@ final class HeaderDetailIssueView: UICollectionReusableView, Reusable {
     fileprivate func setupLayout() {
         
         titleLabel.snp.makeConstraints { (make) in
-            make.left.right.top.equalTo(self).inset(16)
+            make.top.equalTo(self).offset(Constants.margin)
+            make.left.right.equalTo(self).inset(Constants.margin)
         }
                         
         bodyLabel.snp.makeConstraints { (make) in
-            make.top.equalTo(titleLabel.snp.bottom)
-            make.left.right.equalTo(self).inset(16)
+            make.top.equalTo(titleLabel.snp.bottom).offset(16)
+            make.left.right.equalTo(self).inset(Constants.margin)
         }
                 
         commentLabel.snp.makeConstraints { (make) in
             make.top.equalTo(bodyLabel.snp.bottom).offset(16)
-            make.left.right.equalTo(self).inset(16)
+            make.left.right.equalTo(self).inset(Constants.margin)            
             make.bottom.lessThanOrEqualTo(self).priority(1000)
         }
         
-        commentLabel.setContentHuggingPriority(.init(251), for: .vertical)
+        commentLabel.setContentHuggingPriority(.init(252), for: .vertical)
         titleLabel.setContentHuggingPriority(.init(251), for: .vertical)
         bodyLabel.setContentHuggingPriority(.init(250), for: .vertical)
     }
@@ -88,12 +89,17 @@ final class HeaderDetailIssueView: UICollectionReusableView, Reusable {
     // MARK: - Functions
     
     func setPreferredLayoutWith(_ width: CGFloat) {
-        titleLabel.preferredMaxLayoutWidth = width
-        bodyLabel.preferredMaxLayoutWidth = width
+        titleLabel.preferredMaxLayoutWidth = width - Constants.margin * 2
+        bodyLabel.preferredMaxLayoutWidth = width - Constants.margin * 2
+        commentLabel.preferredMaxLayoutWidth = width - Constants.margin * 2
     }
     
     func bindViewModel(_ viewModel: HeaderDetailissueViewModel) {
         titleLabel.text = viewModel.title
         bodyLabel.text = viewModel.body
     }
+}
+
+private extension Constants {
+    static let margin: CGFloat = 16
 }

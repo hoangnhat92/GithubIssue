@@ -19,25 +19,28 @@ class ListIssueCoordinator: Coordinator {
     
     var navigationController: UINavigationController
     
+    private var listIssueViewController: ListIssueViewController
+    
     // MARK: - Initializers
     
     init(navigation: UINavigationController, repository: Repository) {
         self.navigationController = navigation
         self.repository = repository
+        let viewModel = ListIssueViewModel(repository: repository)
+        listIssueViewController = ListIssueViewController(viewModel: viewModel)
     }
     
     // MARK: - Functions
     
     func start() {
-        let viewModel = ListIssueViewModel(repository: repository)
-        let listIssue = ListIssueViewController(viewModel: viewModel)
-        listIssue.delegate = self
-        navigationController.setViewControllers([listIssue], animated: true)        
+        listIssueViewController.delegate = self
+        navigationController.setViewControllers([listIssueViewController], animated: true)        
     }
     
     func startDetailIssue(_ issue: IssueDetail) {
         let viewModel = DetailIssueViewModel(issueDetail: issue)
         let detailIssue = DetailIssueViewController(viewModel: viewModel)
+        detailIssue.delegate = self
         navigationController.pushViewController(detailIssue, animated: true)
     }
 }
@@ -45,5 +48,11 @@ class ListIssueCoordinator: Coordinator {
 extension ListIssueCoordinator: ListIssueViewControllerDelegate {
     func goToDetailIssue(_ issue: IssueDetail) {
         startDetailIssue(issue)
+    }
+}
+
+extension ListIssueCoordinator: DetailIssueViewControllerDelegate {
+    func didCloseIssue() {
+        listIssueViewController.watchListLissue()
     }
 }
