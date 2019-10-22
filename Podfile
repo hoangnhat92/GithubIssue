@@ -6,5 +6,14 @@ target 'GithubIssue' do
   use_frameworks!
 
   # Pods for GithubIssue
-
+  pod 'SDWebImage'
+  pod 'SnapKit'
+  pod 'Reusable'
+  pod 'KeychainSwift'
+  pod 'MBProgressHUD'
+  pod "Apollo"
+  pod 'KeychainSwift'
+  pod 'Toaster'
+  pod 'SwiftDate'
+  
 end

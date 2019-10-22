@@ -1,0 +1,71 @@
+query GetRepository($owner: String!, $name: String!, $states: [IssueState!], $limit: Int, $cursor: String) {
+  repository(owner: $owner, name: $name) {
+    id
+    name
+    owner {
+      login
+    }
+    nameWithOwner
+        issues(first: $limit, after: $cursor, orderBy: {field: CREATED_AT, direction: DESC}, states: $states) {
+      edges {
+        node {
+          ...IssueDetail
+        }
+        cursor
+      }
+      pageInfo {
+        endCursor
+        hasNextPage
+      }
+      totalCount
+    }
+  }
+}
+
+query GetListComments($owner: String!, $name: String!, $number: Int!, $limit: Int, $cursor: String) {
+  repository(owner: $owner, name: $name) {
+    issue(number: $number) {
+      ...IssueDetail
+      comments(first: $limit, after: $cursor) {
+        nodes {
+          ...CommentDetail
+        }
+        pageInfo {
+          endCursor
+          hasNextPage
+        }
+        totalCount
+      }
+    }
+  }
+}
+
+
+fragment CommentDetail on Comment {
+  id
+  author {
+    avatarUrl(size: 40)
+    login
+  }
+  bodyText
+  createdAt
+  viewerDidAuthor
+}
+
+fragment IssueDetail on Issue {
+  id
+  number
+  title
+  state
+  bodyText
+  createdAt
+  author {
+    login
+  }
+  repository {
+    name
+    owner{
+      login
+    }
+  }
+}
