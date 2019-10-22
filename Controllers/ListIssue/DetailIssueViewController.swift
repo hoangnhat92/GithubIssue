@@ -10,14 +10,21 @@ import UIKit
 import SnapKit
 import Toaster
 
+protocol DetailIssueViewControllerDelegate: class {
+    func didCloseIssue()
+}
+
 final class DetailIssueViewController: UIViewController {
     
     // MARK: - Properties
+    weak var delegate: DetailIssueViewControllerDelegate?
     
     enum State {
         case normal
         case editing(String)
     }
+    
+    private var isDidLayoutSubView: Bool = false
     
     private var state: State = .normal
     
@@ -30,6 +37,8 @@ final class DetailIssueViewController: UIViewController {
         clView.keyboardDismissMode = .interactive
         clView.delegate = self
         clView.dataSource = self
+        clView.backgroundColor = UIColor.darkGray
+        clView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 30, right: 0)
         
         if #available(iOS 10.0, *) {
             clView.refreshControl = refreshControl
@@ -48,17 +57,17 @@ final class DetailIssueViewController: UIViewController {
     
     private lazy var commentTextfield: UITextField = {
         let txt = UITextField()
-        txt.delegate = self
         txt.textColor = .white
-        txt.layer.borderWidth = 1.0
-        txt.layer.borderColor = UIColor.white.cgColor
+        txt.attributedPlaceholder = NSAttributedString(string: "Input your comment",
+                                                       attributes: [NSAttributedString.Key.foregroundColor: UIColor.lightGray])
         return txt
     }()
     
     private lazy var sendButton: UIButton = {
         let btn = UIButton(type: .custom)
         btn.setTitle("Send", for: .normal)
-        btn.addTarget(self, action: #selector(onClickSendButton), for: .touchUpInside)
+        btn.addTarget(self, action: #selector(onClickSendButton), for: .touchUpInside)        
+        btn.titleLabel?.font = Font.bold.normal
         return btn
     }()
     
@@ -96,9 +105,16 @@ final class DetailIssueViewController: UIViewController {
         setupLoadData()
     }
     
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+     
+        commentTextfield.addUnderline()
+    }
+    
     // MARK: - Set up
     
     fileprivate func setupView() {
+        view.backgroundColor = UIColor.darkGray
         view.addSubview(collectionView)
         
         footerView.addSubview(commentTextfield)
@@ -107,6 +123,10 @@ final class DetailIssueViewController: UIViewController {
         
         if #available(iOS 11.0, *) {
             navigationItem.largeTitleDisplayMode = .never
+        }
+        
+        if viewModel.shouldShowCloseIssueButton() {
+            addRightBarButton()
         }
     }
     
@@ -182,6 +202,17 @@ final class DetailIssueViewController: UIViewController {
         viewModel.getListComment()
     }
     
+    fileprivate func addRightBarButton() {
+        let barButton = UIBarButtonItem(title: "Close",
+                                        style: .plain,
+                                        target: self,
+                                        action: #selector(onClickToCloseButton))
+        barButton.tintColor = .red
+        barButton.setTitleTextAttributes([NSAttributedString.Key.font: Font.bold.normal], for: .normal)
+        navigationItem.rightBarButtonItem = barButton
+        
+    }
+    
     // MARK: - IBActions
     
     @objc fileprivate func onPullToRefresh() {
@@ -209,6 +240,18 @@ final class DetailIssueViewController: UIViewController {
         state = .editing(commentDetail.id)
         commentTextfield.text = commentDetail.bodyText
         commentTextfield.becomeFirstResponder()
+    }
+    
+    @objc fileprivate func onClickToCloseButton() {
+        let alert = UIAlertController(title: "Message", message: "Do you want to close this issue ?", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .destructive, handler: { (_) in
+            self.showLoading()
+            self.viewModel.closeIssue()
+        }))
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: { (_) in
+            
+        }))
+        present(alert, animated: true, completion: nil)
     }
 }
 
@@ -247,6 +290,7 @@ extension DetailIssueViewController: UICollectionViewDelegate, UICollectionViewD
     
     func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
         if viewModel.shouldLoadMoreData(indexPath) {
+            debugPrint("Reload at indexPath = \(indexPath.row)")
             viewModel.loadMoreListComment()
         }
     }
@@ -280,12 +324,17 @@ extension DetailIssueViewController: DetailIssueViewModelDelegate {
         switch action {
         case .didEditComment:
             state = .normal
+            viewModel.watchListComment()
         case .didDeleteComment, .didAddComment:
             collectionView.reloadData()
-        case .didFetch, .didLoadMore:
+        case .didCloseIssue:
+            delegate?.didCloseIssue()
+        case .didFetch:
             DispatchQueue.main.asyncAfter(wallDeadline: .now() + 1) {
                 self.refreshControl.endRefreshing()
             }
+            collectionView.reloadData()
+        case .didLoadMore:
             collectionView.reloadData()
         case .didFail(let error):
             Toast(text: error.localizedDescription).show()
@@ -293,13 +342,6 @@ extension DetailIssueViewController: DetailIssueViewModelDelegate {
     }
 }
 
-extension DetailIssueViewController: UITextFieldDelegate {
-    
-    func textFieldDidEndEditing(_ textField: UITextField) {
-        self.state = .normal
-    }
-    
-}
 
 extension DetailIssueViewController: CommentCollectionViewCellDelegate {
     func performActionButtton(_ comment: CommentDetail) {

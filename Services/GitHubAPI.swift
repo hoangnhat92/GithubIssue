@@ -671,11 +671,169 @@ public final class DeleteCommentIssueMutation: GraphQLMutation {
   }
 }
 
+public final class CloseIssueMutation: GraphQLMutation {
+  /// The raw GraphQL definition of this operation.
+  public let operationDefinition =
+    """
+    mutation CloseIssue($id: ID!) {
+      closeIssue(input: {issueId: $id}) {
+        __typename
+        clientMutationId
+        issue {
+          __typename
+          ...IssueDetail
+        }
+      }
+    }
+    """
+
+  public let operationName = "CloseIssue"
+
+  public var queryDocument: String { return operationDefinition.appending(IssueDetail.fragmentDefinition) }
+
+  public var id: GraphQLID
+
+  public init(id: GraphQLID) {
+    self.id = id
+  }
+
+  public var variables: GraphQLMap? {
+    return ["id": id]
+  }
+
+  public struct Data: GraphQLSelectionSet {
+    public static let possibleTypes = ["Mutation"]
+
+    public static let selections: [GraphQLSelection] = [
+      GraphQLField("closeIssue", arguments: ["input": ["issueId": GraphQLVariable("id")]], type: .object(CloseIssue.selections)),
+    ]
+
+    public private(set) var resultMap: ResultMap
+
+    public init(unsafeResultMap: ResultMap) {
+      self.resultMap = unsafeResultMap
+    }
+
+    public init(closeIssue: CloseIssue? = nil) {
+      self.init(unsafeResultMap: ["__typename": "Mutation", "closeIssue": closeIssue.flatMap { (value: CloseIssue) -> ResultMap in value.resultMap }])
+    }
+
+    /// Close an issue.
+    public var closeIssue: CloseIssue? {
+      get {
+        return (resultMap["closeIssue"] as? ResultMap).flatMap { CloseIssue(unsafeResultMap: $0) }
+      }
+      set {
+        resultMap.updateValue(newValue?.resultMap, forKey: "closeIssue")
+      }
+    }
+
+    public struct CloseIssue: GraphQLSelectionSet {
+      public static let possibleTypes = ["CloseIssuePayload"]
+
+      public static let selections: [GraphQLSelection] = [
+        GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
+        GraphQLField("clientMutationId", type: .scalar(String.self)),
+        GraphQLField("issue", type: .object(Issue.selections)),
+      ]
+
+      public private(set) var resultMap: ResultMap
+
+      public init(unsafeResultMap: ResultMap) {
+        self.resultMap = unsafeResultMap
+      }
+
+      public init(clientMutationId: String? = nil, issue: Issue? = nil) {
+        self.init(unsafeResultMap: ["__typename": "CloseIssuePayload", "clientMutationId": clientMutationId, "issue": issue.flatMap { (value: Issue) -> ResultMap in value.resultMap }])
+      }
+
+      public var __typename: String {
+        get {
+          return resultMap["__typename"]! as! String
+        }
+        set {
+          resultMap.updateValue(newValue, forKey: "__typename")
+        }
+      }
+
+      /// A unique identifier for the client performing the mutation.
+      public var clientMutationId: String? {
+        get {
+          return resultMap["clientMutationId"] as? String
+        }
+        set {
+          resultMap.updateValue(newValue, forKey: "clientMutationId")
+        }
+      }
+
+      /// The issue that was closed.
+      public var issue: Issue? {
+        get {
+          return (resultMap["issue"] as? ResultMap).flatMap { Issue(unsafeResultMap: $0) }
+        }
+        set {
+          resultMap.updateValue(newValue?.resultMap, forKey: "issue")
+        }
+      }
+
+      public struct Issue: GraphQLSelectionSet {
+        public static let possibleTypes = ["Issue"]
+
+        public static let selections: [GraphQLSelection] = [
+          GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
+          GraphQLFragmentSpread(IssueDetail.self),
+        ]
+
+        public private(set) var resultMap: ResultMap
+
+        public init(unsafeResultMap: ResultMap) {
+          self.resultMap = unsafeResultMap
+        }
+
+        public var __typename: String {
+          get {
+            return resultMap["__typename"]! as! String
+          }
+          set {
+            resultMap.updateValue(newValue, forKey: "__typename")
+          }
+        }
+
+        public var fragments: Fragments {
+          get {
+            return Fragments(unsafeResultMap: resultMap)
+          }
+          set {
+            resultMap += newValue.resultMap
+          }
+        }
+
+        public struct Fragments {
+          public private(set) var resultMap: ResultMap
+
+          public init(unsafeResultMap: ResultMap) {
+            self.resultMap = unsafeResultMap
+          }
+
+          public var issueDetail: IssueDetail {
+            get {
+              return IssueDetail(unsafeResultMap: resultMap)
+            }
+            set {
+              resultMap += newValue.resultMap
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
 public final class GetRepositoryQuery: GraphQLQuery {
   /// The raw GraphQL definition of this operation.
   public let operationDefinition =
     """
-    query GetRepository($owner: String!, $name: String!, $limit: Int, $cursor: String) {
+    query GetRepository($owner: String!, $name: String!, $states: [IssueState!], $limit: Int, $cursor: String) {
       repository(owner: $owner, name: $name) {
         __typename
         id
@@ -685,7 +843,7 @@ public final class GetRepositoryQuery: GraphQLQuery {
           login
         }
         nameWithOwner
-        issues(first: $limit, after: $cursor, orderBy: {field: CREATED_AT, direction: DESC}) {
+        issues(first: $limit, after: $cursor, orderBy: {field: CREATED_AT, direction: DESC}, states: $states) {
           __typename
           edges {
             __typename
@@ -711,18 +869,20 @@ public final class GetRepositoryQuery: GraphQLQuery {
 
   public var owner: String
   public var name: String
+  public var states: [IssueState]?
   public var limit: Int?
   public var cursor: String?
 
-  public init(owner: String, name: String, limit: Int? = nil, cursor: String? = nil) {
+  public init(owner: String, name: String, states: [IssueState]?, limit: Int? = nil, cursor: String? = nil) {
     self.owner = owner
     self.name = name
+    self.states = states
     self.limit = limit
     self.cursor = cursor
   }
 
   public var variables: GraphQLMap? {
-    return ["owner": owner, "name": name, "limit": limit, "cursor": cursor]
+    return ["owner": owner, "name": name, "states": states, "limit": limit, "cursor": cursor]
   }
 
   public struct Data: GraphQLSelectionSet {
@@ -761,7 +921,7 @@ public final class GetRepositoryQuery: GraphQLQuery {
         GraphQLField("name", type: .nonNull(.scalar(String.self))),
         GraphQLField("owner", type: .nonNull(.object(Owner.selections))),
         GraphQLField("nameWithOwner", type: .nonNull(.scalar(String.self))),
-        GraphQLField("issues", arguments: ["first": GraphQLVariable("limit"), "after": GraphQLVariable("cursor"), "orderBy": ["field": "CREATED_AT", "direction": "DESC"]], type: .nonNull(.object(Issue.selections))),
+        GraphQLField("issues", arguments: ["first": GraphQLVariable("limit"), "after": GraphQLVariable("cursor"), "orderBy": ["field": "CREATED_AT", "direction": "DESC"], "states": GraphQLVariable("states")], type: .nonNull(.object(Issue.selections))),
       ]
 
       public private(set) var resultMap: ResultMap

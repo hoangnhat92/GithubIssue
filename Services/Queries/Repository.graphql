@@ -1,4 +1,4 @@
-query GetRepository($owner: String!, $name: String!, $limit: Int, $cursor: String) {
+query GetRepository($owner: String!, $name: String!, $states: [IssueState!], $limit: Int, $cursor: String) {
   repository(owner: $owner, name: $name) {
     id
     name
@@ -6,7 +6,7 @@ query GetRepository($owner: String!, $name: String!, $limit: Int, $cursor: Strin
       login
     }
     nameWithOwner
-    issues(first: $limit, after: $cursor, orderBy: {field: CREATED_AT, direction: DESC}) {
+        issues(first: $limit, after: $cursor, orderBy: {field: CREATED_AT, direction: DESC}, states: $states) {
       edges {
         node {
           ...IssueDetail

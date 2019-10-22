@@ -17,7 +17,7 @@ final class RepositoryNetwork {
     
     let network: ApolloNetwork
     
-    private var queryListCommentWatcher: GraphQLQueryWatcher<GetListCommentsQuery>?
+    private var queryCommentWatcher: GraphQLQueryWatcher<GetListCommentsQuery>?
     private var queryRepositoryWatcher: GraphQLQueryWatcher<GetRepositoryQuery>?
     
     // MARK: - Initializers
@@ -30,23 +30,94 @@ final class RepositoryNetwork {
     
     func getListIssue(ownerName: String,
                       repositoryName: String,
+                      states: [IssueState] = [],
                       limit: Int,
-                      cursor: String? = nil,
                       completionHandler: @escaping (Result<Issue, Error>) -> Void) {
         
         let query = GetRepositoryQuery(owner: ownerName,
                                        name: repositoryName,
+                                       states: states,
+                                       limit: limit)
+        network.client.fetch(query: query,
+                             cachePolicy: .fetchIgnoringCacheData) {
+                                (result) in
+                                switch result {
+                                case .success(let response):
+                                    if let errors = response.errors {
+                                        if let first = errors.first {
+                                            completionHandler(.failure(first))
+                                        }
+                                    } else {
+                                        guard
+                                            let data = response.data,
+                                            let repository = data.repository else {
+                                                completionHandler(.failure(CustomError.emptyData))
+                                                return
+                                        }
+                                        
+                                        let issue = repository.issues
+                                        completionHandler(.success(issue))
+                                    }
+                                case .failure(let error):
+                                    completionHandler(.failure(error))
+                                }
+        }
+    }
+    
+    func loadMoreListIssue(ownerName: String,
+                           repositoryName: String,
+                           states: [IssueState] = [],
+                           limit: Int,
+                           cursor: String? = nil,
+                           completionHandler: @escaping (Result<Issue, Error>) -> Void) {
+        
+        let query = GetRepositoryQuery(owner: ownerName,
+                                       name: repositoryName,
+                                       states: states,
                                        limit: limit,
                                        cursor: cursor)
+        network.client.fetch(query: query) {
+            (result) in
+            switch result {
+            case .success(let response):
+                if let errors = response.errors {
+                    if let first = errors.first {
+                        completionHandler(.failure(first))
+                    }
+                } else {
+                    guard
+                        let data = response.data,
+                        let repository = data.repository else {
+                            completionHandler(.failure(CustomError.emptyData))
+                            return
+                    }
+                    
+                    let issue = repository.issues
+                    completionHandler(.success(issue))
+                }
+            case .failure(let error):
+                completionHandler(.failure(error))
+            }
+        }
+    }
+    
+    func watchListIssue(ownerName: String,
+                        repositoryName: String,
+                        states: [IssueState] = [],
+                        limit: Int,
+                        completionHandler: @escaping (Result<Issue, Error>) -> Void) {
         
-        // Always fetch data without cache when refresh
-        let cachePolicy: CachePolicy = (cursor != nil) ? .returnCacheDataElseFetch : .fetchIgnoringCacheData
-        
+        let query = GetRepositoryQuery(owner: ownerName,
+                                       name: repositoryName,
+                                       states: states,
+                                       limit: limit)
         queryRepositoryWatcher = network.client.watch(query: query,
-                                                      cachePolicy: cachePolicy) { (result) in
+                                                      cachePolicy: .fetchIgnoringCacheData) {
+                                                        [weak self] (result) in
+                                                        guard let self = self else { return }
+                                                        self.queryRepositoryWatcher?.cancel()
                                                         switch result {
                                                         case .success(let response):
-                                                            
                                                             if let errors = response.errors {
                                                                 if let first = errors.first {
                                                                     completionHandler(.failure(first))
@@ -68,12 +139,63 @@ final class RepositoryNetwork {
         }
     }
     
+    func closeIssue(id: String, completionHandler: @escaping (Error?) -> Void) {
+        let mutation = CloseIssueMutation(id: id)
+        
+        network.client.perform(mutation: mutation) { (result) in
+            switch result {
+            case .success:
+                completionHandler(nil)
+            case .failure(let error):
+                completionHandler(error)
+            }
+        }
+    }
+    
     func getListComment(ownerName: String,
                         repositoryName: String,
                         number: Int,
                         limit: Int,
-                        cursor: String? = nil,
                         completionHandler: @escaping (Result<CommentIssue, Error>) -> Void) {
+        
+        let query = GetListCommentsQuery(owner: ownerName,
+                                         name: repositoryName,
+                                         number: number,
+                                         limit: limit)
+        
+        network.client.fetch(query: query,
+                             cachePolicy: .fetchIgnoringCacheData) {
+                                (result) in
+                                switch result {
+                                case .success(let response):
+                                    
+                                    if let errors = response.errors {
+                                        if let first = errors.first {
+                                            completionHandler(.failure(first))
+                                        }
+                                    } else {
+                                        guard
+                                            let data = response.data,
+                                            let repository = data.repository,
+                                            let issue = repository.issue else {
+                                                completionHandler(.failure(CustomError.emptyData))
+                                                return
+                                        }
+                                        
+                                        completionHandler(.success(issue))
+                                    }
+                                case .failure(let error):
+                                    completionHandler(.failure(error))
+                                }
+        }
+    }
+    
+    func loadMoreListComment(ownerName: String,
+                             repositoryName: String,
+                             number: Int,
+                             limit: Int,
+                             cursor: String,
+                             completionHandler: @escaping (Result<CommentIssue, Error>) -> Void) {
         
         let query = GetListCommentsQuery(owner: ownerName,
                                          name: repositoryName,
@@ -81,32 +203,68 @@ final class RepositoryNetwork {
                                          limit: limit,
                                          cursor: cursor)
         
-        // Always fetch data without cache when refresh
-        let cachePolicy: CachePolicy = (cursor != nil) ? .returnCacheDataElseFetch : .fetchIgnoringCacheData
+        network.client.fetch(query: query) {
+            (result) in
+            switch result {
+            case .success(let response):
+                
+                if let errors = response.errors {
+                    if let first = errors.first {
+                        completionHandler(.failure(first))
+                    }
+                } else {
+                    guard
+                        let data = response.data,
+                        let repository = data.repository,
+                        let issue = repository.issue else {
+                            completionHandler(.failure(CustomError.emptyData))
+                            return
+                    }
+                    
+                    completionHandler(.success(issue))
+                }
+            case .failure(let error):
+                completionHandler(.failure(error))
+            }
+        }
+    }
+    
+    func watchListComment(ownerName: String,
+                          repositoryName: String,
+                          number: Int,
+                          limit: Int,
+                          completionHandler: @escaping (Result<CommentIssue, Error>) -> Void) {
         
-        queryListCommentWatcher = network.client.watch(query: query,
-                                                       cachePolicy: cachePolicy) { (result) in
-                                                        switch result {
-                                                        case .success(let response):
-                                                            
-                                                            if let errors = response.errors {
-                                                                if let first = errors.first {
-                                                                    completionHandler(.failure(first))
-                                                                }
-                                                            } else {
-                                                                guard
-                                                                    let data = response.data,
-                                                                    let repository = data.repository,
-                                                                    let issue = repository.issue else {
-                                                                        completionHandler(.failure(CustomError.emptyData))
-                                                                        return
-                                                                }
-                                                                
-                                                                completionHandler(.success(issue))
-                                                            }
-                                                        case .failure(let error):
-                                                            completionHandler(.failure(error))
-                                                        }
+        let query = GetListCommentsQuery(owner: ownerName,
+                                         name: repositoryName,
+                                         number: number,
+                                         limit: limit)
+        
+        queryCommentWatcher = network.client.watch(query: query) {
+            [weak self] (result) in
+            guard let self = self else { return }
+            self.queryCommentWatcher?.cancel()
+            switch result {
+            case .success(let response):
+                
+                if let errors = response.errors {
+                    if let first = errors.first {
+                        completionHandler(.failure(first))
+                    }
+                } else {
+                    guard
+                        let data = response.data,
+                        let repository = data.repository,
+                        let issue = repository.issue else {
+                            completionHandler(.failure(CustomError.emptyData))
+                            return
+                    }
+                    
+                    completionHandler(.success(issue))
+                }
+            case .failure(let error):
+                completionHandler(.failure(error))
+            }
         }
     }
 }

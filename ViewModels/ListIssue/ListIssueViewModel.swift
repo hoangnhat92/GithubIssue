@@ -27,6 +27,10 @@ class ListIssueViewModel {
     
     private var listIssue: [IssueDetail] = []
     
+    private var states: [IssueState] = [.open, .closed]
+    
+    private var isLoadMore: Bool = false
+    
     // MARK: - Initializers
     
     init(repository: Repository,
@@ -34,9 +38,13 @@ class ListIssueViewModel {
         self.repository = repository
         self.network = network
     }
-
+    
     
     // MARK: - Public Functions
+    
+    func updateStates(states: [IssueState]) {
+        self.states = states
+    }
     
     func getOwnerNameRepository() -> String {
         return repository.nameWithOwner
@@ -45,8 +53,35 @@ class ListIssueViewModel {
     func getListIssue() {
         network.getListIssue(ownerName: repository.owner.login,
                              repositoryName: repository.name,
+                             states: states,
                              limit: Constants.limit) {
-                                [weak self ](result) in
+                                [weak self ] (result) in
+                                guard let self = self else { return }
+                                
+                                switch result {
+                                case .success(let issue):
+                                    self.issue = issue
+                                    guard let edges = issue.edges else {
+                                        self.delegate?.performAction(.didFail(CustomError.emptyData))
+                                        return
+                                    }
+                                    
+                                    let issues = edges.compactMap({ $0?.node?.fragments.issueDetail })
+                                    self.listIssue = issues
+                                    
+                                    self.delegate?.performAction(.didFetch)
+                                case .failure(let error):
+                                    self.delegate?.performAction(.didFail(error))
+                                }
+        }
+    }
+    
+    func watchListIssue() {
+        network.watchListIssue(ownerName: repository.owner.login,
+                               repositoryName: repository.name,
+                               states: states,
+                               limit: Constants.limit) {
+                                [weak self ] (result) in
                                 guard let self = self else { return }
                                 
                                 switch result {
@@ -68,31 +103,35 @@ class ListIssueViewModel {
     }
     
     func loadMoreListIssue() {
-        guard let issue = issue else { return }
-        network.getListIssue(ownerName: repository.owner.login,
-                             repositoryName: repository.name,
-                             limit: Constants.limit,
-                             cursor: issue.pageInfo.endCursor) {
-                                [weak self ](result) in
-                                guard let self = self else { return }
-                                
-                                switch result {
-                                case .success(let issue):
-                                    guard issue.pageInfo.endCursor != self.issue?.pageInfo.endCursor else { return }
+        guard !isLoadMore, let issue = issue else { return }
+        isLoadMore = true
+        network.loadMoreListIssue(ownerName: repository.owner.login,
+                                  repositoryName: repository.name,
+                                  states: states,
+                                  limit: Constants.limit,
+                                  cursor: issue.pageInfo.endCursor) {
+                                    [weak self ](result) in
+                                    guard let self = self else { return }
                                     
-                                    self.issue = issue
-                                    guard let edges = issue.edges else {
-                                        return
+                                    self.isLoadMore = false
+                                    
+                                    switch result {
+                                    case .success(let issue):
+                                        guard issue.pageInfo.endCursor != self.issue?.pageInfo.endCursor else { return }
+                                        
+                                        self.issue = issue
+                                        guard let edges = issue.edges else {
+                                            return
+                                        }
+                                        
+                                        let issues = edges.compactMap({ $0?.node?.fragments.issueDetail })
+                                        self.listIssue += issues
+                                        
+                                        self.delegate?.performAction(.didLoadMore)
+                                        
+                                    case .failure(let error):
+                                        self.delegate?.performAction(.didFail(error))
                                     }
-                                    
-                                    let issues = edges.compactMap({ $0?.node?.fragments.issueDetail })
-                                    self.listIssue += issues
-                                    
-                                    self.delegate?.performAction(.didLoadMore)
-                                    
-                                case .failure(let error):
-                                    self.delegate?.performAction(.didFail(error))
-                                }
         }
     }
     
@@ -116,7 +155,7 @@ class ListIssueViewModel {
     
     func itemForIndexPath(_ indexPath: IndexPath) -> IssueDetail? {
         guard indexPath.row < listIssue.count else { return nil }
-                
+        
         return listIssue[indexPath.row]
     }
 }

@@ -27,8 +27,8 @@ final class ListIssueViewController: UIViewController {
     
     private lazy var tableView: UITableView =  {
         let tblView = UITableView()
-        tblView.backgroundColor = .black
-        tblView.separatorColor = .darkGray
+        tblView.backgroundColor = UIColor.darkGray
+        tblView.separatorColor = .lightGray
         
         tblView.delegate = self
         tblView.dataSource = self
@@ -65,10 +65,15 @@ final class ListIssueViewController: UIViewController {
         loadData()
     }
     
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        
+        navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
+    }
+    
     // MARK: - Set up
     
     fileprivate func setupView() {
-        
         title = "GitHub"
         
         if #available(iOS 11.0, *) {
@@ -82,6 +87,8 @@ final class ListIssueViewController: UIViewController {
         tableView.removeBottomSeperatorLine()
         setupHeaderTableView()
         setupRefreshControl()
+        addRightBarButton()
+        extendedLayoutIncludesOpaqueBars = true
     }
     
     fileprivate func setupLayout() {
@@ -99,9 +106,10 @@ final class ListIssueViewController: UIViewController {
                                         width: self.view.frame.size.width,
                                         height: 40))
         let label = UILabel()
-        label.textColor = .black
+        label.font = Font.bold.normal
+        label.textColor = .white
         label.text = viewModel.getOwnerNameRepository()
-        view.backgroundColor = .white
+        view.backgroundColor = UIColor.blueGray
         view.addSubview(label)
         
         label.snp.makeConstraints { (make) in
@@ -109,6 +117,16 @@ final class ListIssueViewController: UIViewController {
         }
         
         tableView.tableHeaderView = view
+    }
+    
+    fileprivate func addRightBarButton() {
+        let barButton = UIBarButtonItem(title: "Filter",
+                                        style: .plain,
+                                        target: self,
+                                        action: #selector(onClickToFilterButton))
+        barButton.tintColor = .white
+        barButton.setTitleTextAttributes([NSAttributedString.Key.font: Font.bold.normal], for: .normal)
+        navigationItem.rightBarButtonItem = barButton
     }
     
     fileprivate func setupViewModel() {
@@ -120,6 +138,10 @@ final class ListIssueViewController: UIViewController {
         viewModel.getListIssue()
     }
     
+    func watchListLissue() {
+        viewModel.watchListIssue()
+    }
+    
     fileprivate func setupRefreshControl() {
         if #available(iOS 10.0, *) {
             tableView.refreshControl = refreshControl
@@ -129,9 +151,34 @@ final class ListIssueViewController: UIViewController {
     }
     
     // MARK: - IBActions
+    
     @objc fileprivate func onPullToRefresh() {
+        debugPrint("onPullToRefresh")
         refreshControl.beginRefreshing()
         viewModel.getListIssue()
+    }
+    
+    @objc fileprivate func onClickToFilterButton() {
+        let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        
+        alert.addAction(UIAlertAction(title: "OPEN", style: .default, handler: { (_) in
+            self.viewModel.updateStates(states: [.open])
+            self.viewModel.getListIssue()
+        }))
+        
+        alert.addAction(UIAlertAction(title: "CLOSED", style: .default, handler: { (_) in
+            self.viewModel.updateStates(states: [.closed])
+            self.viewModel.getListIssue()
+        }))
+        
+        alert.addAction(UIAlertAction(title: "BOTH", style: .default, handler: { (_) in
+            self.viewModel.updateStates(states: [.open, .closed])
+            self.viewModel.getListIssue()
+        }))
+        
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        
+        present(alert, animated: true, completion: nil)
     }
 }
 
@@ -161,9 +208,13 @@ extension ListIssueViewController: UITableViewDataSource, UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        if viewModel.shouldLoadMoreData(indexPath) {            
+        if viewModel.shouldLoadMoreData(indexPath) {
             viewModel.loadMoreListIssue()
         }
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return Constants.rowHeight
     }
 }
 
@@ -183,4 +234,8 @@ extension ListIssueViewController: ListIssueViewModelDelegate {
             Toast(text: error.localizedDescription).show()
         }
     }
+}
+
+fileprivate extension Constants {
+    static let rowHeight: CGFloat = 80
 }

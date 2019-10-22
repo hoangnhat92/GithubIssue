@@ -68,19 +68,46 @@ class DetailIssueViewModel {
     }
     
     func loadMoreListComment() {
-        repositoryNetwork.getListComment(ownerName: issueDetail.repository.owner.login,
-                                         repositoryName: issueDetail.repository.name,
-                                         number: issueDetail.number,
-                                         limit: Constants.limit,
-                                         cursor: commentIssue?.comments.pageInfo.endCursor) {
+        guard
+            let commentIssue = commentIssue,
+            let endCursor  = commentIssue.comments.pageInfo.endCursor else { return }
+        repositoryNetwork.loadMoreListComment(ownerName: issueDetail.repository.owner.login,
+                                              repositoryName: issueDetail.repository.name,
+                                              number: issueDetail.number,
+                                              limit: Constants.limit,
+                                              cursor: endCursor) {
+                                                [weak self] (result) in
+                                                guard let self = self else { return }
+                                                
+                                                switch result {
+                                                case .success(let comment):
+                                                    self.commentIssue = comment
+                                                    
+                                                    guard let edges = comment.comments.nodes else {
+                                                        self.delegate?.performAction(.didFail(CustomError.emptyData))
+                                                        return
+                                                    }
+                                                    
+                                                    let comments = edges.compactMap({ $0?.fragments.commentDetail })
+                                                    self.listComment += comments
+                                                    self.delegate?.performAction(.didLoadMore)
+                                                    
+                                                case .failure(let error):
+                                                    self.delegate?.performAction(.didFail(error))
+                                                }
+        }
+    }
+    
+    func watchListComment() {
+        repositoryNetwork.watchListComment(ownerName: issueDetail.repository.owner.login,
+                                           repositoryName: issueDetail.repository.name,
+                                           number: issueDetail.number,
+                                           limit: Constants.limit) {
                                             [weak self] (result) in
                                             guard let self = self else { return }
-                                            
+                                                                                        
                                             switch result {
                                             case .success(let comment):
-                                                guard comment.comments.pageInfo.endCursor != self.commentIssue?.comments.pageInfo.endCursor else { return
-                                                }
-                                                
                                                 self.commentIssue = comment
                                                 
                                                 guard let edges = comment.comments.nodes else {
@@ -89,12 +116,25 @@ class DetailIssueViewModel {
                                                 }
                                                 
                                                 let comments = edges.compactMap({ $0?.fragments.commentDetail })
-                                                self.listComment += comments
-                                                self.delegate?.performAction(.didLoadMore)
+                                                self.listComment = comments
+                                                self.delegate?.performAction(.didFetch)
                                                 
                                             case .failure(let error):
                                                 self.delegate?.performAction(.didFail(error))
                                             }
+        }
+    }
+    
+    func closeIssue() {
+        repositoryNetwork.closeIssue(id: issueDetail.id) {
+            [weak self] (error) in
+            guard let self = self else { return }
+            
+            if let error = error {
+                self.delegate?.performAction(.didFail(error))
+            } else {
+                self.delegate?.performAction(.didCloseIssue)
+            }
         }
     }
     
@@ -107,6 +147,9 @@ class DetailIssueViewModel {
                                           body: issueDetail.bodyText)
     }
     
+    func shouldShowCloseIssueButton() -> Bool {
+        return (issueDetail.state != .closed)
+    }
     
     func shouldLoadMoreData(_ indexPath: IndexPath) -> Bool {
         guard let commentIssue = commentIssue else { return false }
@@ -174,6 +217,7 @@ extension DetailIssueViewModel {
     }
     
     enum Action {
+        case didCloseIssue
         case didEditComment
         case didAddComment
         case didDeleteComment
