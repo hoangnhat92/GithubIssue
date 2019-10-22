@@ -203,8 +203,8 @@ final class AuthenticationViewController: UIViewController {
         repositoryNameTextfield.text = "GithubIssue"
         ownerNameTextfield.text = "hoangnhat92"
         
-        let lastFiveCharacter = "ceeaa"
-        tokenTextfield.text = "10333fdf383c2fea3c5a15722d58fe635e9\(lastFiveCharacter)"
+        let lastFiveCharacter = "d0411"
+        tokenTextfield.text = "c80178455f32397dc6cb612e718cc9a583c\(lastFiveCharacter)"
     }
     
     fileprivate func setupViewModel() {
