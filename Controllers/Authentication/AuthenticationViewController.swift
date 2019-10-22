@@ -17,8 +17,7 @@ protocol AuthenticationDelegate: class {
 final class AuthenticationViewController: UIViewController {
 
     // MARK: - Properties
-    
-    let viewModel: AuthenticationViewModel
+    private let viewModel: AuthenticationViewModel
     
     weak var delegate: AuthenticationDelegate?
     
@@ -35,7 +34,7 @@ final class AuthenticationViewController: UIViewController {
         lb.text = "GitHub"
         lb.textAlignment = .center
         lb.textColor = .white
-        lb.font = UIFont.boldSystemFont(ofSize: 23)
+        lb.font = Font.bold.largeTitle
         return lb
     }()
     
@@ -43,6 +42,7 @@ final class AuthenticationViewController: UIViewController {
         let lb = UILabel()
         lb.text = "Repository Name"
         lb.textColor = .white
+        lb.font = Font.bold.subttile
         return lb
     }()
     
@@ -50,6 +50,7 @@ final class AuthenticationViewController: UIViewController {
         let lb = UILabel()
         lb.text = "Owner Name"
         lb.textColor = .white
+        lb.font = Font.bold.subttile
         return lb
     }()
     
@@ -57,6 +58,7 @@ final class AuthenticationViewController: UIViewController {
         let lb = UILabel()
         lb.text = "Private Token"
         lb.textColor = .white
+        lb.font = Font.bold.subttile
         return lb
     }()
     
@@ -77,13 +79,19 @@ final class AuthenticationViewController: UIViewController {
     
     private lazy var submitButton: UIButton = {
         let btn = UIButton()
+        btn.addBorder(radius: 10)
         btn.addTarget(self, action: #selector(onClickSubmitButton), for: .touchUpInside)
-        btn.setTitle("Submit", for: .normal)
+        btn.setTitle("Sign-in", for: .normal)
+        btn.setTitleColor(.white, for: .normal)
+        btn.titleLabel?.font = Font.bold.normal
+        btn.backgroundColor = UIColor.blueGray
         return btn
     }()
     
+    var didLayoutSubViews: Bool = false
     
     // MARK: - Initialize
+    
     init(viewModel: AuthenticationViewModel = AuthenticationViewModel()) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
@@ -107,11 +115,24 @@ final class AuthenticationViewController: UIViewController {
         #endif
     }
     
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        
+        defer {
+            didLayoutSubViews = true
+        }
+        
+        if !didLayoutSubViews {
+            repositoryNameTextfield.addUnderline()
+            ownerNameTextfield.addUnderline()
+            tokenTextfield.addUnderline()
+        }
+    }
+    
     // MARK: - Set up
     
     fileprivate func setupView() {
-        navigationController?.navigationBar.barStyle = .black
-        navigationController?.navigationBar.isTranslucent = false
+        view.backgroundColor = UIColor.darkGray                
         
         view.addSubview(logoImageView)
         view.addSubview(titleLabel)
@@ -122,6 +143,8 @@ final class AuthenticationViewController: UIViewController {
         view.addSubview(ownerNameTextfield)
         view.addSubview(tokenTextfield)
         view.addSubview(submitButton)
+        
+        addGesture()
     }
     
     fileprivate func setupLayout() {
@@ -137,38 +160,40 @@ final class AuthenticationViewController: UIViewController {
         
         repositoryNameLabel.snp.makeConstraints { (make) in
             make.top.equalTo(titleLabel.snp.bottom).offset(32)
-            make.left.right.equalTo(view).inset(16)
+            make.left.right.equalTo(view).inset(Constants.margin)
         }
         
         repositoryNameTextfield.snp.makeConstraints { (make) in
             make.top.equalTo(repositoryNameLabel.snp.bottom).offset(10)
             make.height.equalTo(30)
-            make.left.right.equalTo(view).inset(16)
+            make.left.right.equalTo(view).inset(Constants.margin)
         }
         
         ownerNameLabel.snp.makeConstraints { (make) in
             make.top.equalTo(repositoryNameTextfield.snp.bottom).offset(16)
-            make.left.right.equalTo(view).inset(16)
+            make.left.right.equalTo(view).inset(Constants.margin)
         }
         
         ownerNameTextfield.snp.makeConstraints { (make) in
             make.top.equalTo(ownerNameLabel.snp.bottom).offset(10)
             make.height.equalTo(30)
-            make.left.right.equalTo(view).inset(16)
+            make.left.right.equalTo(view).inset(Constants.margin)
         }
         
         tokenLabel.snp.makeConstraints { (make) in
             make.top.equalTo(ownerNameTextfield.snp.bottom).offset(16)
-            make.left.right.equalTo(view).inset(16)
+            make.left.right.equalTo(view).inset(Constants.margin)
         }
         
         tokenTextfield.snp.makeConstraints { (make) in
             make.top.equalTo(tokenLabel.snp.bottom).offset(10)
             make.height.equalTo(30)
-            make.left.right.equalTo(view).inset(16)
+            make.left.right.equalTo(view).inset(Constants.margin)
         }
         
         submitButton.snp.makeConstraints { (make) in
+            make.width.equalTo(120)
+            make.height.equalTo(40)
             make.top.equalTo(tokenTextfield.snp.bottom).offset(32)
             make.centerX.equalTo(view)
         }
@@ -178,12 +203,22 @@ final class AuthenticationViewController: UIViewController {
         repositoryNameTextfield.text = "GithubIssue"
         ownerNameTextfield.text = "hoangnhat92"
         
-        let subString = "999cd8"
-        tokenTextfield.text = "79417a3eebd31c8d18a6be1de3859f94f7\(subString)"
+        let lastFiveCharacter = "ceeaa"
+        tokenTextfield.text = "10333fdf383c2fea3c5a15722d58fe635e9\(lastFiveCharacter)"
     }
     
     fileprivate func setupViewModel() {
         viewModel.delegate = self
+    }
+    
+    fileprivate func addGesture() {
+        let gesture = UITapGestureRecognizer(target: self, action: #selector(onClickToScreen))
+        gesture.numberOfTapsRequired = 1
+        view.addGestureRecognizer(gesture)
+    }
+    
+    @objc fileprivate func onClickToScreen() {
+        view.endEditing(true)
     }
     
     // MARK: - IBActions
@@ -201,7 +236,8 @@ final class AuthenticationViewController: UIViewController {
             return
         }
         
-        view.endEditing(true)        
+        view.endEditing(true)
+        
         showLoading()
         viewModel.loginWith(owner: owner, repositiory: repository, token: token)
     }
@@ -212,12 +248,9 @@ final class AuthenticationViewController: UIViewController {
 extension AuthenticationViewController {
     fileprivate func makeTextfield() -> UITextField {
         let txt = UITextField()
-        txt.setPadding()
+        txt.delegate = self
         txt.textColor = .white
-        txt.layer.cornerRadius = 5
-        txt.layer.masksToBounds = true
-        txt.layer.borderColor = UIColor.white.cgColor
-        txt.layer.borderWidth = 1.0
+        txt.clearButtonMode = .whileEditing
         return txt
     }
 }
@@ -232,4 +265,17 @@ extension AuthenticationViewController: AuthenticationViewModelDelegate {
         hideLoading()
         Toast(text: error.localizedDescription).show()
     }
+}
+
+extension AuthenticationViewController: UITextFieldDelegate {
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        view.endEditing(true)
+        return true
+    }
+}
+
+// MARK: - Configurations
+
+private extension Constants {
+    static let margin: CGFloat = 32
 }
