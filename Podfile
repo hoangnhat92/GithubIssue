@@ -11,4 +11,9 @@ target 'GithubIssue' do
   pod 'Reusable'
   pod 'KeychainSwift'
   pod 'MBProgressHUD'
+  pod "Apollo"
+  pod 'KeychainSwift'
+  pod 'Toaster'
+  pod 'SwiftDate'
+  
 end

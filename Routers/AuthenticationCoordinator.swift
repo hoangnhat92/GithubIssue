@@ -10,7 +10,7 @@ import Foundation
 import UIKit
 
 protocol AuthenticationCoordinatorDelegate: class {
-    func didFinishAuthentication(_ coordinator: AuthenticationCoordinator)
+    func didFinishAuthentication(_ coordinator: AuthenticationCoordinator, _ repository: Repository)
 }
 
 class AuthenticationCoordinator: Coordinator {
@@ -42,7 +42,7 @@ class AuthenticationCoordinator: Coordinator {
 // MARK: - Extensions
 
 extension AuthenticationCoordinator: AuthenticationDelegate {
-    func didFinishAuthentication() {
-        delegate?.didFinishAuthentication(self)
+    func didFinishAuthentication(_ repository: Repository) {
+        delegate?.didFinishAuthentication(self, repository)
     }
 }

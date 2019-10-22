@@ -17,12 +17,26 @@ class AppCoordinator: Coordinator {
     
     var childCoordinators = [Coordinator]()
     
-    var navigationController = UINavigationController()
+    lazy var navigationController: UINavigationController = {
+        let navigation = UINavigationController()
+        navigation.setDarkBackground()
+        navigation.hideBottomBar()
+        navigation.navigationBar.tintColor = .white
+        return navigation
+    }()
     
     // MARK: - Initializers
     
     init(window: UIWindow?) {
         self.window = window
+        setupNotifications()
+    }
+    
+    fileprivate func setupNotifications() {
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(handleUnauthorizeAccessToken),
+                                               name: .didUnauthorizeAccessToken,
+                                               object: nil)
     }
     
     // MARK: - Functions
@@ -33,8 +47,9 @@ class AppCoordinator: Coordinator {
         window?.makeKeyAndVisible()
     }
     
-    func goToListIssue() {
-        let listIssue = ListIssueCoordinator(navigation: navigationController)
+    func goToListIssue(with repository: Repository) {
+        let listIssue = ListIssueCoordinator(navigation: navigationController,
+                                             repository: repository)
         add(coordinator: listIssue)
         listIssue.start()
     }
@@ -50,8 +65,17 @@ class AppCoordinator: Coordinator {
 // MARK: Extensions
 
 extension AppCoordinator: AuthenticationCoordinatorDelegate {
-    func didFinishAuthentication(_ coordinator: AuthenticationCoordinator) {
+    func didFinishAuthentication(_ coordinator: AuthenticationCoordinator, _ repository: Repository) {
         remove(coordinator: coordinator)
-        goToListIssue()
+        goToListIssue(with: repository)
+    }
+}
+
+extension AppCoordinator {
+    @objc fileprivate func handleUnauthorizeAccessToken() {
+        // Clear all coordinators
+        childCoordinators.removeAll()
+        // Setup new authentication
+        goToAuthentication()
     }
 }
