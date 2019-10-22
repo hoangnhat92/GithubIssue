@@ -27,6 +27,8 @@ class DetailIssueViewModel {
     
     private var listComment: [CommentDetail] = []
     
+    private var isLoadMore: Bool = false
+    
     // MARK: - Initializers
     
     init(repositoryNetwork: RepositoryNetwork = RepositoryNetwork(),
@@ -69,8 +71,12 @@ class DetailIssueViewModel {
     
     func loadMoreListComment() {
         guard
+            !isLoadMore,
             let commentIssue = commentIssue,
             let endCursor  = commentIssue.comments.pageInfo.endCursor else { return }
+        
+        isLoadMore = true
+        
         repositoryNetwork.loadMoreListComment(ownerName: issueDetail.repository.owner.login,
                                               repositoryName: issueDetail.repository.name,
                                               number: issueDetail.number,
@@ -78,6 +84,8 @@ class DetailIssueViewModel {
                                               cursor: endCursor) {
                                                 [weak self] (result) in
                                                 guard let self = self else { return }
+                                                
+                                                self.isLoadMore = false
                                                 
                                                 switch result {
                                                 case .success(let comment):
@@ -143,8 +151,10 @@ class DetailIssueViewModel {
         guard let commentIssue = commentIssue else { return nil }
         
         let issueDetail = commentIssue.fragments.issueDetail
+        
         return HeaderDetailissueViewModel(title: issueDetail.title,
-                                          body: issueDetail.bodyText)
+                                          body: issueDetail.bodyText,
+                                          totalComments: commentIssue.comments.totalCount)
     }
     
     func shouldShowCloseIssueButton() -> Bool {
@@ -178,7 +188,11 @@ class DetailIssueViewModel {
             
             switch result {
             case .success(let commentDetail):
-                self.listComment.append(commentDetail)
+                guard let commentIssue = self.commentIssue else { return }
+                if !commentIssue.comments.pageInfo.hasNextPage {
+                    self.listComment.append(commentDetail)
+                }
+                
                 self.delegate?.performAction(.didAddComment)
             case .failure(let error):
                 debugPrint(error)

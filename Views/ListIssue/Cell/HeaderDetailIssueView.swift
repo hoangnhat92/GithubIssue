@@ -97,6 +97,7 @@ final class HeaderDetailIssueView: UICollectionReusableView, Reusable {
     func bindViewModel(_ viewModel: HeaderDetailissueViewModel) {
         titleLabel.text = viewModel.title
         bodyLabel.text = viewModel.body
+        commentLabel.text = "Comments ( \(viewModel.totalComments) )"
     }
 }
 

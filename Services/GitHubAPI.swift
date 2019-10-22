@@ -1255,6 +1255,7 @@ public final class GetListCommentsQuery: GraphQLQuery {
               endCursor
               hasNextPage
             }
+            totalCount
           }
         }
       }
@@ -1414,6 +1415,7 @@ public final class GetListCommentsQuery: GraphQLQuery {
             GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
             GraphQLField("nodes", type: .list(.object(Node.selections))),
             GraphQLField("pageInfo", type: .nonNull(.object(PageInfo.selections))),
+            GraphQLField("totalCount", type: .nonNull(.scalar(Int.self))),
           ]
 
           public private(set) var resultMap: ResultMap
@@ -1422,8 +1424,8 @@ public final class GetListCommentsQuery: GraphQLQuery {
             self.resultMap = unsafeResultMap
           }
 
-          public init(nodes: [Node?]? = nil, pageInfo: PageInfo) {
-            self.init(unsafeResultMap: ["__typename": "IssueCommentConnection", "nodes": nodes.flatMap { (value: [Node?]) -> [ResultMap?] in value.map { (value: Node?) -> ResultMap? in value.flatMap { (value: Node) -> ResultMap in value.resultMap } } }, "pageInfo": pageInfo.resultMap])
+          public init(nodes: [Node?]? = nil, pageInfo: PageInfo, totalCount: Int) {
+            self.init(unsafeResultMap: ["__typename": "IssueCommentConnection", "nodes": nodes.flatMap { (value: [Node?]) -> [ResultMap?] in value.map { (value: Node?) -> ResultMap? in value.flatMap { (value: Node) -> ResultMap in value.resultMap } } }, "pageInfo": pageInfo.resultMap, "totalCount": totalCount])
           }
 
           public var __typename: String {
@@ -1452,6 +1454,16 @@ public final class GetListCommentsQuery: GraphQLQuery {
             }
             set {
               resultMap.updateValue(newValue.resultMap, forKey: "pageInfo")
+            }
+          }
+
+          /// Identifies the total count of items in the connection.
+          public var totalCount: Int {
+            get {
+              return resultMap["totalCount"]! as! Int
+            }
+            set {
+              resultMap.updateValue(newValue, forKey: "totalCount")
             }
           }
 

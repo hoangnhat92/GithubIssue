@@ -68,3 +68,23 @@ extension ApolloNetwork: HTTPNetworkTransportPreflightDelegate {
         }
     }
 }
+
+
+extension ApolloNetwork: HTTPNetworkTransportRetryDelegate {
+    func networkTransport(_ networkTransport: HTTPNetworkTransport, receivedError error: Error, for request: URLRequest, response: URLResponse?, retryHandler: @escaping (Bool) -> Void) {
+        
+        if let httpResponse = response as? HTTPURLResponse {
+            let statusCode = httpResponse.statusCode
+            if statusCode == Constants.HTTPStatusCodes.unauthorized.rawValue {
+                retryHandler(false)
+                NotificationCenter.default.post(name: .didUnauthorizeAccessToken, object: nil)
+            }
+        }
+    }
+}
+
+private extension Constants {
+    enum HTTPStatusCodes: Int {
+        case unauthorized = 401
+    }
+}

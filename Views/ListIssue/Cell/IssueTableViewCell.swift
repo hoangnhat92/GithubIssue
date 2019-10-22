@@ -32,6 +32,7 @@ final class IssueTableViewCell: UITableViewCell, Reusable {
     
     private lazy var createdAtLabel: UILabel = {
         let lb = UILabel()
+        lb.textAlignment = .right
         lb.textColor = .white
         lb.font = Font.regular.small
         return lb
@@ -39,6 +40,7 @@ final class IssueTableViewCell: UITableViewCell, Reusable {
     
     private lazy var statusLabel: UILabel = {
         let lb = UILabel()
+        lb.textAlignment = .left
         lb.textColor = .white
         lb.font = Font.regular.small
         return lb
@@ -46,6 +48,7 @@ final class IssueTableViewCell: UITableViewCell, Reusable {
     
     private lazy var ownerNameLabel: UILabel = {
         let lb = UILabel()
+        lb.textAlignment = .left
         lb.textColor = .white
         lb.font = Font.regular.small
         return lb
@@ -90,8 +93,9 @@ final class IssueTableViewCell: UITableViewCell, Reusable {
         
         mainStackView.addArrangedSubview(titleLabel)
         let descStackView = UIStackView()
-        descStackView.distribution = .fillProportionally
+        descStackView.distribution = .fillEqually
         descStackView.axis = .horizontal
+        descStackView.spacing = 3
         
         descStackView.addArrangedSubview(statusLabel)
         descStackView.addArrangedSubview(ownerNameLabel)
@@ -121,7 +125,7 @@ final class IssueTableViewCell: UITableViewCell, Reusable {
         }
         
         mainStackView.snp.makeConstraints { (make) in
-            make.edges.equalTo(rightView)
+            make.edges.equalTo(rightView).inset(5)
         }
     }
     

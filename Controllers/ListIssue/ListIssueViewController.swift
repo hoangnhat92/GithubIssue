@@ -153,7 +153,6 @@ final class ListIssueViewController: UIViewController {
     // MARK: - IBActions
     
     @objc fileprivate func onPullToRefresh() {
-        debugPrint("onPullToRefresh")
         refreshControl.beginRefreshing()
         viewModel.getListIssue()
     }

@@ -9,4 +9,5 @@
 struct HeaderDetailissueViewModel {
     let title: String
     let body: String
+    let totalComments: Int
 }

@@ -213,6 +213,10 @@ final class DetailIssueViewController: UIViewController {
         
     }
     
+    fileprivate func removeRightBarButton() {
+        navigationItem.rightBarButtonItem = nil
+    }
+    
     // MARK: - IBActions
     
     @objc fileprivate func onPullToRefresh() {
@@ -290,7 +294,6 @@ extension DetailIssueViewController: UICollectionViewDelegate, UICollectionViewD
     
     func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
         if viewModel.shouldLoadMoreData(indexPath) {
-            debugPrint("Reload at indexPath = \(indexPath.row)")
             viewModel.loadMoreListComment()
         }
     }
@@ -328,6 +331,7 @@ extension DetailIssueViewController: DetailIssueViewModelDelegate {
         case .didDeleteComment, .didAddComment:
             collectionView.reloadData()
         case .didCloseIssue:
+            removeRightBarButton()
             delegate?.didCloseIssue()
         case .didFetch:
             DispatchQueue.main.asyncAfter(wallDeadline: .now() + 1) {
@@ -347,11 +351,11 @@ extension DetailIssueViewController: CommentCollectionViewCellDelegate {
     func performActionButtton(_ comment: CommentDetail) {
         
         let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-        alert.addAction(UIAlertAction(title: "Edit", style: .default, handler: { _ in
+        alert.addAction(UIAlertAction(title: "Edit comment", style: .default, handler: { _ in
             self.enableEditMode(comment)
         }))
         
-        alert.addAction(UIAlertAction(title: "Delete", style: .destructive, handler: { _ in
+        alert.addAction(UIAlertAction(title: "Delete comment", style: .destructive, handler: { _ in
             self.viewModel.deleteComment(comment.id)
         }))
         

@@ -33,6 +33,7 @@ query GetListComments($owner: String!, $name: String!, $number: Int!, $limit: In
           endCursor
           hasNextPage
         }
+        totalCount
       }
     }
   }
