@@ -13,11 +13,20 @@ typealias CommentIssue = GetListCommentsQuery.Data.Repository.Issue
 
 final class RepositoryNetwork {
     
+    // MARK: - Attributes
+    
     let network: ApolloNetwork
     
-    init(network: ApolloNetwork = ApolloNetwork()) {
+    private var queryListCommentWatcher: GraphQLQueryWatcher<GetListCommentsQuery>?
+    private var queryRepositoryWatcher: GraphQLQueryWatcher<GetRepositoryQuery>?
+    
+    // MARK: - Initializers
+    
+    init(network: ApolloNetwork = ApolloNetwork.shared) {
         self.network = network
-    }
+    }        
+    
+    // MARK: - Functions
     
     func getListIssue(ownerName: String,
                       repositoryName: String,
@@ -30,28 +39,32 @@ final class RepositoryNetwork {
                                        limit: limit,
                                        cursor: cursor)
         
-        network.client.fetch(query: query) { (result) in
-            switch result {
-            case .success(let response):
-                
-                if let errors = response.errors {
-                    if let first = errors.first {
-                        completionHandler(.failure(first))
-                    }
-                } else {
-                    guard
-                        let data = response.data,
-                        let repository = data.repository else {
-                            completionHandler(.failure(CustomError.emptyData))
-                            return
-                    }
-                    
-                    let issue = repository.issues
-                    completionHandler(.success(issue))
-                }
-            case .failure(let error):
-                completionHandler(.failure(error))
-            }
+        // Always fetch data without cache when refresh
+        let cachePolicy: CachePolicy = (cursor != nil) ? .returnCacheDataElseFetch : .fetchIgnoringCacheData
+        
+        queryRepositoryWatcher = network.client.watch(query: query,
+                                                      cachePolicy: cachePolicy) { (result) in
+                                                        switch result {
+                                                        case .success(let response):
+                                                            
+                                                            if let errors = response.errors {
+                                                                if let first = errors.first {
+                                                                    completionHandler(.failure(first))
+                                                                }
+                                                            } else {
+                                                                guard
+                                                                    let data = response.data,
+                                                                    let repository = data.repository else {
+                                                                        completionHandler(.failure(CustomError.emptyData))
+                                                                        return
+                                                                }
+                                                                
+                                                                let issue = repository.issues
+                                                                completionHandler(.success(issue))
+                                                            }
+                                                        case .failure(let error):
+                                                            completionHandler(.failure(error))
+                                                        }
         }
     }
     
@@ -68,28 +81,32 @@ final class RepositoryNetwork {
                                          limit: limit,
                                          cursor: cursor)
         
-        network.client.fetch(query: query) { (result) in
-            switch result {
-            case .success(let response):
-                
-                if let errors = response.errors {
-                    if let first = errors.first {
-                        completionHandler(.failure(first))
-                    }
-                } else {
-                    guard
-                        let data = response.data,
-                        let repository = data.repository,
-                        let issue = repository.issue else {
-                            completionHandler(.failure(CustomError.emptyData))
-                            return
-                    }
-                                        
-                    completionHandler(.success(issue))
-                }
-            case .failure(let error):
-                completionHandler(.failure(error))
-            }
+        // Always fetch data without cache when refresh
+        let cachePolicy: CachePolicy = (cursor != nil) ? .returnCacheDataElseFetch : .fetchIgnoringCacheData
+        
+        queryListCommentWatcher = network.client.watch(query: query,
+                                                       cachePolicy: cachePolicy) { (result) in
+                                                        switch result {
+                                                        case .success(let response):
+                                                            
+                                                            if let errors = response.errors {
+                                                                if let first = errors.first {
+                                                                    completionHandler(.failure(first))
+                                                                }
+                                                            } else {
+                                                                guard
+                                                                    let data = response.data,
+                                                                    let repository = data.repository,
+                                                                    let issue = repository.issue else {
+                                                                        completionHandler(.failure(CustomError.emptyData))
+                                                                        return
+                                                                }
+                                                                
+                                                                completionHandler(.success(issue))
+                                                            }
+                                                        case .failure(let error):
+                                                            completionHandler(.failure(error))
+                                                        }
         }
     }
 }

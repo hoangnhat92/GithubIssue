@@ -11,11 +11,17 @@ import Apollo
 
 final class AuthenticationNetwork {
     
+    // MARK: - Attributes
+    
     let network: ApolloNetwork
     
-    init(network: ApolloNetwork = ApolloNetwork()) {
+    // MARK: - Initializers
+    
+    init(network: ApolloNetwork = ApolloNetwork.shared) {
         self.network = network
     }
+    
+    // MARK: - Functions
     
     func authenticationWith(ownerName: String,
                             repositoryName: String,

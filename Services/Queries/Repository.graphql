@@ -26,11 +26,8 @@ query GetListComments($owner: String!, $name: String!, $number: Int!, $limit: In
     issue(number: $number) {
       ...IssueDetail
       comments(first: $limit, after: $cursor) {
-        edges {
-          node {
-            ...CommentDetail
-          }
-          cursor
+        nodes {
+          ...CommentDetail
         }
         pageInfo {
           endCursor
@@ -43,12 +40,14 @@ query GetListComments($owner: String!, $name: String!, $number: Int!, $limit: In
 
 
 fragment CommentDetail on Comment {
+  id
   author {
-    avatarUrl
+    avatarUrl(size: 40)
     login
   }
   bodyText
   createdAt
+  viewerDidAuthor
 }
 
 fragment IssueDetail on Issue {

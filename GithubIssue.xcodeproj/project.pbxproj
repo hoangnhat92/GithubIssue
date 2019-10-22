@@ -33,6 +33,8 @@
 		6459626223595D3A005C2BD9 /* IssueTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6459626123595D3A005C2BD9 /* IssueTableViewCell.swift */; };
 		645962642359B199005C2BD9 /* DetailIssueViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 645962632359B199005C2BD9 /* DetailIssueViewController.swift */; };
 		645962662359B20B005C2BD9 /* UITableView+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 645962652359B20B005C2BD9 /* UITableView+Extensions.swift */; };
+		64CAFBBF235D90080014F136 /* MutationComment.graphql in Resources */ = {isa = PBXBuildFile; fileRef = 64CAFBBE235D90080014F136 /* MutationComment.graphql */; };
+		64CAFBC1235D903B0014F136 /* CommentNetwork.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64CAFBC0235D903B0014F136 /* CommentNetwork.swift */; };
 		64E1FEC02357672500A67E8C /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 64E1FEBF2357672500A67E8C /* AppDelegate.swift */; };
 		64E1FEC92357672600A67E8C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 64E1FEC82357672600A67E8C /* Assets.xcassets */; };
 		64E1FECC2357672600A67E8C /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 64E1FECA2357672600A67E8C /* LaunchScreen.storyboard */; };
@@ -69,6 +71,8 @@
 		6459626123595D3A005C2BD9 /* IssueTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IssueTableViewCell.swift; sourceTree = "<group>"; };
 		645962632359B199005C2BD9 /* DetailIssueViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailIssueViewController.swift; sourceTree = "<group>"; };
 		645962652359B20B005C2BD9 /* UITableView+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UITableView+Extensions.swift"; sourceTree = "<group>"; };
+		64CAFBBE235D90080014F136 /* MutationComment.graphql */ = {isa = PBXFileReference; lastKnownFileType = text; path = MutationComment.graphql; sourceTree = "<group>"; };
+		64CAFBC0235D903B0014F136 /* CommentNetwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentNetwork.swift; sourceTree = "<group>"; };
 		64E1FEBC2357672500A67E8C /* GithubIssue.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GithubIssue.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		64E1FEBF2357672500A67E8C /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		64E1FEC82357672600A67E8C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -131,6 +135,7 @@
 			isa = PBXGroup;
 			children = (
 				642B80BB235B7B3A003A01A9 /* Repository.graphql */,
+				64CAFBBE235D90080014F136 /* MutationComment.graphql */,
 				64F3F7E1235B342D004AD381 /* Authentication.graphql */,
 			);
 			path = Queries;
@@ -247,6 +252,7 @@
 		64E1FEF523576A4F00A67E8C /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				64CAFBC0235D903B0014F136 /* CommentNetwork.swift */,
 				642B80BF235B80C8003A01A9 /* RepositoryNetwork.swift */,
 				642B80BD235B7D25003A01A9 /* AuthenticationNetwork.swift */,
 				6406C409235B5A5600108F4E /* ApolloNetwork.swift */,
@@ -391,6 +397,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				64F3F7E2235B342D004AD381 /* Authentication.graphql in Resources */,
+				64CAFBBF235D90080014F136 /* MutationComment.graphql in Resources */,
 				64F3F7DB235B3398004AD381 /* schema.json in Resources */,
 				64E1FECC2357672600A67E8C /* LaunchScreen.storyboard in Resources */,
 				64E1FEC92357672600A67E8C /* Assets.xcassets in Resources */,
@@ -508,6 +515,7 @@
 				6459625C23586AD0005C2BD9 /* AuthenticationViewController.swift in Sources */,
 				64E1FEC02357672500A67E8C /* AppDelegate.swift in Sources */,
 				6459626223595D3A005C2BD9 /* IssueTableViewCell.swift in Sources */,
+				64CAFBC1235D903B0014F136 /* CommentNetwork.swift in Sources */,
 				6406C40A235B5A5600108F4E /* ApolloNetwork.swift in Sources */,
 				6428C718235D40F400653F83 /* DetailIssueViewModel.swift in Sources */,
 				6428C71D235D547E00653F83 /* HeaderDetailissueViewModel.swift in Sources */,

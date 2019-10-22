@@ -34,9 +34,9 @@ class ListIssueViewModel {
         self.repository = repository
         self.network = network
     }
+
     
-    
-    // MARK: - Functions
+    // MARK: - Public Functions
     
     func getOwnerNameRepository() -> String {
         return repository.nameWithOwner
@@ -78,6 +78,8 @@ class ListIssueViewModel {
                                 
                                 switch result {
                                 case .success(let issue):
+                                    guard issue.pageInfo.endCursor != self.issue?.pageInfo.endCursor else { return }
+                                    
                                     self.issue = issue
                                     guard let edges = issue.edges else {
                                         return
@@ -124,7 +126,7 @@ extension ListIssueViewModel {
         static let limit: Int = 5
     }
     
-    enum Action {
+    enum Action {        
         case didFetch
         case didLoadMore
         case didFail(Error)        

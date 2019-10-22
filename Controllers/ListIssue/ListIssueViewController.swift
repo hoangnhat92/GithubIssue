@@ -12,7 +12,7 @@ import Toaster
 
 
 protocol ListIssueViewControllerDelegate: class {
-    func goToDetailIssue(_ issue: IssueDetail)
+    func goToDetailIssue(_ issue: IssueDetail) 
 }
 
 final class ListIssueViewController: UIViewController {
@@ -21,9 +21,9 @@ final class ListIssueViewController: UIViewController {
     
     weak var delegate: ListIssueViewControllerDelegate?
     
-    let viewModel: ListIssueViewModel
+    private let viewModel: ListIssueViewModel
     
-    var issues: [IssueDetail]?
+    private var issues: [IssueDetail]?
     
     private lazy var tableView: UITableView =  {
         let tblView = UITableView()
@@ -161,7 +161,7 @@ extension ListIssueViewController: UITableViewDataSource, UITableViewDelegate {
     }
     
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        if viewModel.shouldLoadMoreData(indexPath) {
+        if viewModel.shouldLoadMoreData(indexPath) {            
             viewModel.loadMoreListIssue()
         }
     }
@@ -173,7 +173,9 @@ extension ListIssueViewController: ListIssueViewModelDelegate {
         
         switch action {
         case .didFetch :
-            refreshControl.endRefreshing()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                self.refreshControl.endRefreshing()
+            }
             tableView.reloadData()
         case .didLoadMore:
             tableView.reloadData()

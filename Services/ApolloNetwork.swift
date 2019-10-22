@@ -11,20 +11,27 @@ import Apollo
 
 final class ApolloNetwork {
     
+    // MARK: - Attributes
     static let shared = ApolloNetwork()
-    
-    var accessToken: AccessToken?
-    
-    init(accessToken: AccessToken? = AuthenticationResult.shared.accessToken) {
-        self.accessToken = accessToken
-    }
     
     lazy var networkTransport = HTTPNetworkTransport(
         url: Constants.baseURL,
         delegate: self
     )
     
-    lazy var client = ApolloClient(networkTransport: self.networkTransport)
+    lazy var client: ApolloClient = {
+        let cl = ApolloClient(networkTransport: self.networkTransport)
+        cl.cacheKeyForObject = { $0["id"] }
+        return cl
+    }()
+    
+    var accessToken: AccessToken?
+    
+    // MARK: - Initializers
+    
+    init(accessToken: AccessToken? = AuthenticationResult.shared.accessToken) {
+        self.accessToken = accessToken
+    }
 }
 
 extension ApolloNetwork: HTTPNetworkTransportPreflightDelegate {
@@ -48,5 +55,16 @@ extension ApolloNetwork: HTTPNetworkTransportPreflightDelegate {
         
         // Re-assign the updated headers to the request.
         request.allHTTPHeaderFields = headers
+    }
+    
+    func networkTransport(_ networkTransport: HTTPNetworkTransport,
+                          didCompleteRawTaskForRequest request: URLRequest,
+                          withData data: Data?,
+                          response: URLResponse?,
+                          error: Error?) {
+        
+        if let error = error {
+          debugPrint(error)
+        }
     }
 }

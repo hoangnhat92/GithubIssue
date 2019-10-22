@@ -8,10 +8,18 @@
 
 import UIKit
 import SnapKit
+import Toaster
 
 final class DetailIssueViewController: UIViewController {
     
     // MARK: - Properties
+    
+    enum State {
+        case normal
+        case editing(String)
+    }
+    
+    private var state: State = .normal
     
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
@@ -21,7 +29,14 @@ final class DetailIssueViewController: UIViewController {
         let clView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         clView.keyboardDismissMode = .interactive
         clView.delegate = self
-        clView.dataSource = self        
+        clView.dataSource = self
+        
+        if #available(iOS 10.0, *) {
+            clView.refreshControl = refreshControl
+        } else {
+            // Fallback on earlier versions
+            clView.addSubview(refreshControl)
+        }
         
         return clView
     }()
@@ -33,6 +48,7 @@ final class DetailIssueViewController: UIViewController {
     
     private lazy var commentTextfield: UITextField = {
         let txt = UITextField()
+        txt.delegate = self
         txt.textColor = .white
         txt.layer.borderWidth = 1.0
         txt.layer.borderColor = UIColor.white.cgColor
@@ -42,14 +58,22 @@ final class DetailIssueViewController: UIViewController {
     private lazy var sendButton: UIButton = {
         let btn = UIButton(type: .custom)
         btn.setTitle("Send", for: .normal)
+        btn.addTarget(self, action: #selector(onClickSendButton), for: .touchUpInside)
         return btn
     }()
     
-    var bottomConstraint: Constraint? = nil
+    lazy var refreshControl: UIRefreshControl = {
+        let refresh = UIRefreshControl()
+        refresh.addTarget(self, action: #selector(onPullToRefresh), for: .valueChanged)
+        return refresh
+    }()
     
-    let viewModel: DetailIssueViewModel
+    private var bottomConstraint: Constraint? = nil
+    
+    private let viewModel: DetailIssueViewModel
     
     // MARK: - Initializers
+    
     init(viewModel: DetailIssueViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
@@ -66,8 +90,10 @@ final class DetailIssueViewController: UIViewController {
 
         setupView()
         setupLayout()
+        setupViewModel()
         registerCells()
         registerNotifications()
+        setupLoadData()
     }
     
     // MARK: - Set up
@@ -147,47 +173,148 @@ final class DetailIssueViewController: UIViewController {
         collectionView.register(cellType: CommentCollectionViewCell.self)
     }
     
+    fileprivate func setupViewModel() {
+        viewModel.delegate = self
+    }
+    
+    fileprivate func setupLoadData() {
+        showLoading()
+        viewModel.getListComment()
+    }
+    
     // MARK: - IBActions
     
+    @objc fileprivate func onPullToRefresh() {
+        refreshControl.beginRefreshing()
+        viewModel.getListComment()
+    }
     
+    @objc fileprivate func onClickSendButton() {
+        guard let text = commentTextfield.text, !text.isEmpty else { return }
+        
+        showLoading()
+        view.endEditing(true)
+        
+        switch state {
+        case .normal:
+            viewModel.addCommentToIssue(text)
+        case .editing(let id):
+            viewModel.editComment(id, text: text)
+        }
+        
+        commentTextfield.text = ""
+    }
     
+    fileprivate func enableEditMode(_ commentDetail: CommentDetail) {
+        state = .editing(commentDetail.id)
+        commentTextfield.text = commentDetail.bodyText
+        commentTextfield.becomeFirstResponder()
+    }
 }
 
 // MARK: - Extensions
 
 extension DetailIssueViewController: UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, UICollectionViewDataSource {
+    
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return 15
+        return viewModel.numberOfItemInSections(section)
     }
             
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        guard let viewModel = viewModel.itemForIndexPath(indexPath) else  { return UICollectionViewCell() }
+        
         let cell = collectionView.dequeueReusableCell(for: indexPath,
                                                       cellType: CommentCollectionViewCell.self)
+        cell.viewModel = viewModel
+        cell.delegate = self
+        
         return cell
     }
     
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String,
                         at indexPath: IndexPath) -> UICollectionReusableView {
+        guard let viewModel = viewModel.getHeaderDetailIssue() else {
+            return UICollectionReusableView()
+        }
+        
         let header = collectionView.dequeueReusableSupplementaryView(ofKind: UICollectionView.elementKindSectionHeader,
                                                                      for: indexPath,
                                                                      viewType: HeaderDetailIssueView.self)
-        header.bindViewModel(viewModel.getHeaderDetailIssue())
+        header.bindViewModel(viewModel)
+        
         return header
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+        if viewModel.shouldLoadMoreData(indexPath) {
+            viewModel.loadMoreListComment()
+        }
     }
         
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout,
                         referenceSizeForHeaderInSection section: Int) -> CGSize {
+        
+        guard let viewModel = viewModel.getHeaderDetailIssue() else {
+            return .zero
+        }
+        
         let indexPath = IndexPath(row: 0, section: section)
         
         let header = collectionView.dequeueReusableSupplementaryView(ofKind: UICollectionView.elementKindSectionHeader,
                                                                      for: indexPath,
                                                                      viewType: HeaderDetailIssueView.self)
-        
+        header.bindViewModel(viewModel)
         header.setPreferredLayoutWith(collectionView.frame.width)
         header.setNeedsLayout()
         header.layoutIfNeeded()
         
         let frame = header.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize)
         return CGSize(width: collectionView.frame.size.width, height: frame.height)
+    }
+}
+
+extension DetailIssueViewController: DetailIssueViewModelDelegate {
+    func performAction(_ action: DetailIssueViewModel.Action) {
+        hideLoading()
+        
+        switch action {
+        case .didEditComment:
+            state = .normal
+        case .didDeleteComment, .didAddComment:
+            collectionView.reloadData()
+        case .didFetch, .didLoadMore:
+            DispatchQueue.main.asyncAfter(wallDeadline: .now() + 1) {
+                self.refreshControl.endRefreshing()
+            }
+            collectionView.reloadData()
+        case .didFail(let error):
+            Toast(text: error.localizedDescription).show()
+        }
+    }
+}
+
+extension DetailIssueViewController: UITextFieldDelegate {
+    
+    func textFieldDidEndEditing(_ textField: UITextField) {
+        self.state = .normal
+    }
+    
+}
+
+extension DetailIssueViewController: CommentCollectionViewCellDelegate {
+    func performActionButtton(_ comment: CommentDetail) {
+        
+        let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        alert.addAction(UIAlertAction(title: "Edit", style: .default, handler: { _ in
+            self.enableEditMode(comment)
+        }))
+        
+        alert.addAction(UIAlertAction(title: "Delete", style: .destructive, handler: { _ in
+            self.viewModel.deleteComment(comment.id)
+        }))
+        
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        
+        present(alert, animated: true, completion: nil)
     }
 }

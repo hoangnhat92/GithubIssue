@@ -41,57 +41,60 @@ class DetailIssueViewModel {
     
     func getListComment() {
         repositoryNetwork.getListComment(ownerName: issueDetail.repository.owner.login,
-                               repositoryName: issueDetail.repository.name,
-                               number: issueDetail.number,
-                               limit: Constants.limit) {
-                                [weak self] (result) in
-                                guard let self = self else { return }
-                                
-                                switch result {
-                                case .success(let comment):
-                                    self.commentIssue = comment
-                                    
-                                    guard let edges = comment.comments.edges else {
-                                        self.delegate?.performAction(.didFail(CustomError.emptyData))
-                                        return
-                                    }
-                                    
-                                    let comments = edges.compactMap({ $0?.node?.fragments.commentDetail })
-                                    self.listComment = comments
-                                    
-                                    self.delegate?.performAction(.didFetch)
-                                    
-                                case .failure(let error):
-                                    self.delegate?.performAction(.didFail(error))
-                                }
+                                         repositoryName: issueDetail.repository.name,
+                                         number: issueDetail.number,
+                                         limit: Constants.limit) {
+                                            [weak self] (result) in
+                                            guard let self = self else { return }
+                                            
+                                            switch result {
+                                            case .success(let comment):
+                                                self.commentIssue = comment
+                                                
+                                                guard let edges = comment.comments.nodes else {
+                                                    self.delegate?.performAction(.didFail(CustomError.emptyData))
+                                                    return
+                                                }
+                                                
+                                                let comments = edges.compactMap({ $0?.fragments.commentDetail })
+                                                self.listComment = comments
+                                                
+                                                self.delegate?.performAction(.didFetch)
+                                                
+                                            case .failure(let error):
+                                                self.delegate?.performAction(.didFail(error))
+                                            }
         }
     }
     
     func loadMoreListComment() {
         repositoryNetwork.getListComment(ownerName: issueDetail.repository.owner.login,
-                               repositoryName: issueDetail.repository.name,
-                               number: issueDetail.number,
-                               limit: Constants.limit,
-                               cursor: commentIssue?.comments.pageInfo.endCursor) {
-                                [weak self] (result) in
-                                guard let self = self else { return }
-                                
-                                switch result {
-                                case .success(let comment):
-                                    self.commentIssue = comment
-                                    
-                                    guard let edges = comment.comments.edges else {
-                                        self.delegate?.performAction(.didFail(CustomError.emptyData))
-                                        return
-                                    }
-                                    
-                                    let comments = edges.compactMap({ $0?.node?.fragments.commentDetail })
-                                    self.listComment += comments
-                                    
-                                    self.delegate?.performAction(.didFetch)
-                                case .failure(let error):
-                                    self.delegate?.performAction(.didFail(error))
-                                }
+                                         repositoryName: issueDetail.repository.name,
+                                         number: issueDetail.number,
+                                         limit: Constants.limit,
+                                         cursor: commentIssue?.comments.pageInfo.endCursor) {
+                                            [weak self] (result) in
+                                            guard let self = self else { return }
+                                            
+                                            switch result {
+                                            case .success(let comment):
+                                                guard comment.comments.pageInfo.endCursor != self.commentIssue?.comments.pageInfo.endCursor else { return
+                                                }
+                                                
+                                                self.commentIssue = comment
+                                                
+                                                guard let edges = comment.comments.nodes else {
+                                                    self.delegate?.performAction(.didFail(CustomError.emptyData))
+                                                    return
+                                                }
+                                                
+                                                let comments = edges.compactMap({ $0?.fragments.commentDetail })
+                                                self.listComment += comments
+                                                self.delegate?.performAction(.didLoadMore)
+                                                
+                                            case .failure(let error):
+                                                self.delegate?.performAction(.didFail(error))
+                                            }
         }
     }
     
@@ -106,13 +109,9 @@ class DetailIssueViewModel {
     
     
     func shouldLoadMoreData(_ indexPath: IndexPath) -> Bool {
-        guard
-            let commentIssue = commentIssue,
-            let edges = commentIssue.comments.edges else {
-                return false
-        }
+        guard let commentIssue = commentIssue else { return false }
         
-        if indexPath.row == edges.count - 1 {
+        if indexPath.row == listComment.count - 1 {
             return commentIssue.comments.pageInfo.hasNextPage
         }
         
@@ -128,6 +127,44 @@ class DetailIssueViewModel {
         
         return listComment[indexPath.row]
     }
+    
+    func addCommentToIssue(_ text: String) {
+        commentNetwork.addCommentIssue(subjectID: issueDetail.id, bodyString: text) {
+            [weak self] (result) in
+            guard let self = self else { return }
+            
+            switch result {
+            case .success(let commentDetail):
+                self.listComment.append(commentDetail)
+                self.delegate?.performAction(.didAddComment)
+            case .failure(let error):
+                debugPrint(error)
+                self.delegate?.performAction(.didFail(error))
+            }
+        }
+    }
+    
+    func deleteComment(_ commentId: String) {
+        commentNetwork.deleteCommentIssue(subjectID: commentId) { (result) in
+            switch result {
+            case .success(let id):
+                self.listComment.removeAll(where: { $0.id == id })
+                self.delegate?.performAction(.didDeleteComment)
+            case .failure(let error):
+                self.delegate?.performAction(.didFail(error))
+            }
+        }
+    }
+    
+    func editComment(_ commentId: String, text: String) {
+        commentNetwork.editCommentIssue(subjectID: commentId, bodyString: text) { (error) in
+            if let error = error {
+                self.delegate?.performAction(.didFail(error))
+            } else {
+                self.delegate?.performAction(.didEditComment)
+            }
+        }
+    }
 }
 
 // MARK: - Configurations
@@ -137,6 +174,9 @@ extension DetailIssueViewModel {
     }
     
     enum Action {
+        case didEditComment
+        case didAddComment
+        case didDeleteComment
         case didFetch
         case didLoadMore
         case didFail(Error)
