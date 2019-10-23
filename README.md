@@ -1,4 +1,17 @@
+
 # GithubIssue
+
+### Overview
+- Create an application that allows users to browse a list of issues.
+- Users can view the comments of the issue, they also edit, delete and add new comment.
+- Using GitHub GraphQL.
+
+### Installing
+Go to the root project and type below command in terminal. This command will install dependencies in the project.
+
+<pre>pod install</pre>
+
+### Architectures
 
 For a better experience, the App should run on an iPhone X and the project built by lastest Xcode ( 11.0 )
 
@@ -6,7 +19,9 @@ Architecture For the architecture, I chose MVVM, DI and Coordinator.
 
 GitFlow The repository follows GitFlow Guidlines: branches come from master, are merged in develop and finally develop is merged into master.
 
-Third party libraries
+### Challenging with GraphQL
+
+### Third party libraries
 
 I have chosen three well-known libraries that prove useful for the matter of this challenge as well as any other production App. In fact, I have used myself these frameworks in Production environment.
 
