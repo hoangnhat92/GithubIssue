@@ -15,7 +15,11 @@ Go to the root project and type below command in terminal. This command will ins
 
 For a better experience, the App should run on an iPhone X and the project built by lastest Xcode ( 11.0 )
 
-Architecture For the architecture, I chose MVVM, DI and Coordinator.
+For the architecture, I choose MVVM, DI and Coordinator. In the real world, we already have many architectures such as MVC, MVP, MVVM, VIPER ... I tried those architectures and none of them is the good architecture for all projects. The good archirecture for the project, it depends on your team, your experience, your requirements. I decided to use MVVM because it's really simple and compare with MVC, MVVM has many advantages like move all business logic or interface logic to ViewModel, we save a lots of code in Controller since it was massive Controller, and MVVM is a good pattern for unit testing. 
+Coordinator responsibility is to handle navigation flow, keeping a clean architecture and seperation of concerns of navigation between flows
+
+
+### GitFlow process
 
 GitFlow The repository follows GitFlow Guidlines: branches come from master, are merged in develop and finally develop is merged into master.
 
