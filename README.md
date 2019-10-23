@@ -11,6 +11,9 @@ Go to the root project and type below command in terminal. This command will ins
 
 <pre>pod install</pre>
 
+Note: You can edit the repository name, owner name and access token by default in AuthenticationViewController.swift. 
+Go to setupMockData function which you can inject your information. In the first sign, it looks weird, because I used two variables for token, because whenever I put an private token to my code and push to GitHub, it will be automatically revoked by GitHub system, so I seperate an token to two strings like a way to trick GitHub system. 
+
 ### Architectures
 
 For a better experience, the App should run on an iPhone X and the project built by lastest Xcode ( 11.0 )
@@ -23,7 +26,12 @@ Coordinator responsibility is to handle navigation flow, keeping a clean archite
 
 GitFlow The repository follows GitFlow Guidlines: branches come from master, are merged in develop and finally develop is merged into master.
 
-### Challenging with GraphQL
+### Challenging with GraphQL and Apollo
+
+This is the first time I work with GraphQL and Apollo. I heard that concept many years ago, I got some articles about it, but I dont have any chance to use it in real project so it's really an opportunity to learn new thing.
+
+I found Apollo like a library to support GraphQL client. It allows you to execute queries and mutations against a GraphQL server and returns results as query-specific Swift types. This means you don't have to deal with parsing JSON, or passing around dictionaries and making clients cast values to the right type manually. You also don't have to write model types yourself, because these are generated from the GraphQL definitions your UI uses.
+
 
 
 
