@@ -32,7 +32,13 @@ This is the first time I work with GraphQL and Apollo. I heard that concept many
 
 I found Apollo like a library to support GraphQL client. It allows you to execute queries and mutations against a GraphQL server and returns results as query-specific Swift types. This means you don't have to deal with parsing JSON, or passing around dictionaries and making clients cast values to the right type manually. You also don't have to write model types yourself, because these are generated from the GraphQL definitions your UI uses.
 
+After working with Apollo and also GraphQL in 2 days, I've concluded my best practice about those things :
 
+- Create the folder called Query to put all queries into this folder, I would like to seperate two kinds of query : one for retrieve data and one for mutation. It help us to search easily.
+- Careful working with caching. Caching is the most amazing thing in Apollo framework, but sometimes we can get a painful when use it anywhere. For example : In default, all fetch method use returnCacheDataElseFetch by default, that means it will return data from the cache if available, else fetch results from the server. If we going to create a method for authentication, the caching not really helpful in this case, because we want to get response from server without caching. 
+- The ApolloNetwork object should be singleton if we want to use caching
+- Consider when using fetch and watch method
+- Fragment made the code more reusable. In case if we want add more properties to the fragment, extension in Swift is a hand.
 
 
 ### Third party libraries
